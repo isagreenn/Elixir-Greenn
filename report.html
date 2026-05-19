@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report bug · Elixir Greenn</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="stylesheet" href="/css/modals.css">
+
+<style>
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(29,158,117,.18), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(83,74,183,.12), transparent 70%),
+      var(--bg);
+    padding: 40px 16px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+  }
+
+  .rp-hero {
+    width: 100%; max-width: 620px;
+    text-align: center;
+  }
+  .rp-brand {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-display);
+    font-size: 11px; font-weight: 800;
+    letter-spacing: .12em;
+    color: var(--text2); text-transform: uppercase;
+    margin-bottom: 14px;
+    padding: 5px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  .rp-brand-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2.5s ease infinite;
+  }
+  .rp-brand span { color: var(--green); }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.5)} }
+
+  .rp-title {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .rp-title em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--green), #5DCAA5);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .rp-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 18px;
+    padding: 20px 24px;
+    width: 100%; max-width: 620px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.02) inset,
+      0 16px 40px rgba(0,0,0,.3);
+  }
+  [data-theme="light"] .rp-card {
+    box-shadow:
+      0 1px 0 rgba(0,0,0,.02) inset,
+      0 16px 40px rgba(0,0,0,.08);
+  }
+
+  .rp-card-head {
+    display: flex; align-items: center; gap: 10px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rp-card-icon {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  [data-theme="dark"] .rp-card-icon { background: rgba(29,158,117,.15); color: var(--green); }
+  .rp-card-head h2 {
+    font-family: var(--font-display);
+    font-size: 15px; font-weight: 700;
+    letter-spacing: -.01em;
+    color: var(--text);
+    margin: 0;
+  }
+  .rp-card-head p {
+    font-size: 11px; color: var(--text3);
+    margin-top: 1px;
+  }
+
+  .rp-card .tm-field { margin-bottom: 10px; }
+  .rp-card .tm-field > label:first-child {
+    font-size: 10px; font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 4px;
+  }
+  .rp-card .tm-field input,
+  .rp-card .tm-field select,
+  .rp-card .tm-field textarea {
+    padding: 7px 9px; font-size: 12.5px;
+  }
+  .rp-card .tm-field textarea { min-height: 56px; }
+  .rp-card .tm-field label.tm-drop {
+    padding: 10px 14px; gap: 3px;
+  }
+  .rp-card .tm-drop-icon { width: 26px; height: 26px; font-size: 14px; }
+  .rp-card .tm-drop-text { font-size: 12px; }
+  .rp-card .tm-drop-hint { font-size: 10px; }
+
+  .rp-card .tm-actions {
+    border-top: 1px solid var(--border);
+    margin-top: 10px; padding-top: 10px;
+  }
+  .rp-card .tm-actions .btn-primary {
+    width: 100%;
+    padding: 10px 18px;
+    font-size: 13px;
+    justify-content: center;
+  }
+
+  .rp-footer {
+    font-size: 10px; color: var(--text3);
+    text-align: center;
+    line-height: 1.5;
+  }
+  .rp-footer i { color: var(--green); vertical-align: -2px; }
+
+  @media (max-height: 720px) {
+    .rp-card { padding: 14px 18px; }
+    .rp-card .tm-field { margin-bottom: 6px; }
+    .rp-card-head { padding-bottom: 8px; margin-bottom: 8px; }
+  }
+  @media (max-width: 540px) {
+    body { overflow: auto; }
+    .rp-card { padding: 16px; border-radius: 14px; max-height: none; }
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<section class="rp-hero">
+  <div class="rp-brand">
+    <span class="rp-brand-dot"></span>
+    ELIXIR <span>GREENN</span>
+  </div>
+  <h1 class="rp-title">Reporte um bug em <em>segundos</em></h1>
+</section>
+
+<main class="rp-card task-modal">
+  <div class="rp-card-head">
+    <div class="rp-card-icon"><i class="ti ti-wand"></i></div>
+    <div>
+      <h2>Report bug cliente</h2>
+      <p>Preencha os campos obrigatórios marcados com *</p>
+    </div>
+  </div>
+
+  <div id="ct_formView">
+    <div class="tm-field">
+      <label>Título do problema<span class="req">*</span></label>
+      <input type="text" id="ct_titulo" placeholder="Ex: Usuário relata divergência em status de venda">
+    </div>
+
+    <div class="tm-field">
+      <label>Descrição do problema<span class="req">*</span></label>
+      <textarea id="ct_descricao" placeholder="Detalhe o que aconteceu, qual o comportamento esperado, e quaisquer evidências relevantes."></textarea>
+    </div>
+
+    <div class="tm-field">
+      <label>Cliente afetado<span class="req">*</span></label>
+      <input type="text" id="ct_cliente" placeholder="Nome, e-mail ou ID do cliente">
+    </div>
+
+    <div class="tm-field">
+      <label>Arquivos complementares</label>
+      <label class="tm-drop" id="ct_drop" for="ct_arquivos">
+        <input type="file" id="ct_arquivos" multiple hidden>
+        <div class="tm-drop-icon"><i class="ti ti-cloud-upload"></i></div>
+        <div class="tm-drop-text">
+          Solte seus arquivos aqui para <span>fazer upload</span>
+        </div>
+        <div class="tm-drop-hint">PNG, JPG, PDF, vídeo · até 25 MB</div>
+      </label>
+      <div class="tm-file-list" id="ct_fileList"></div>
+    </div>
+
+    <div class="tm-field">
+      <label>Prioridade<span class="req">*</span></label>
+      <select id="ct_prioridade">
+        <option value="">Selecionar prioridade</option>
+        <option>Urgente</option>
+        <option>Alta</option>
+        <option>Normal</option>
+        <option>Baixa</option>
+      </select>
+    </div>
+
+    <div class="tm-field">
+      <label>Observadores<span class="req">*</span></label>
+      <input type="text" id="ct_observadores" placeholder="Nomes separados por vírgula">
+    </div>
+  </div>
+
+  <div class="tm-output" id="ct_outputWrap" style="display:none">
+    <div id="ct_outputInner"></div>
+  </div>
+
+  <div class="tm-actions" id="ct_actions">
+    <button class="btn btn-primary" id="btnGerarTaskModal" onclick="gerarTaskFromModal()">
+      <i class="ti ti-sparkles"></i> Gerar task com IA
+    </button>
+  </div>
+</main>
+
+<footer class="rp-footer">
+  <i class="ti ti-shield-check"></i> Seus dados vão direto pro ClickUp via API segura ·
+  Powered by Elixir Greenn
+</footer>
+
+<!-- Env vars do Vite (.env) -->
+<script type="module" src="/src/env.js"></script>
+<!-- Scripts em ordem de dependência -->
+<script src="/js/config.js"></script>
+<script src="/js/ui-helpers.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/criar-task.js"></script>
+<script>
+  // ────────────────────────────────────────────────────────
+  // Standalone overrides
+  // ────────────────────────────────────────────────────────
+  function resetReportForm() {
+    document.getElementById('ct_outputWrap').style.display = 'none';
+    document.getElementById('ct_formView').style.display = 'block';
+    ['ct_titulo','ct_descricao','ct_cliente','ct_observadores'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    const prio = document.getElementById('ct_prioridade');
+    if (prio) prio.value = '';
+    const list = document.getElementById('ct_fileList');
+    if (list) list.innerHTML = '';
+    const inp = document.getElementById('ct_arquivos');
+    if (inp) inp.value = '';
+    window._ctExtraInfo = [];
+    ctSetActions('form');
+  }
+
+  window.closeCriarTaskModal = resetReportForm;
+
+  window.ctSetActions = function(state) {
+    const el = document.getElementById('ct_actions');
+    if (state === 'form') {
+      el.style.display = 'flex';
+      el.innerHTML = `
+        <button class="btn btn-primary" id="btnGerarTaskModal" onclick="gerarTaskFromModal()">
+          <i class="ti ti-sparkles"></i> Gerar task com IA
+        </button>`;
+    } else if (state === 'hidden') {
+      el.style.display = 'none';
+    } else if (state === 'success') {
+      el.style.display = 'flex';
+      el.innerHTML = `
+        <button class="btn btn-primary" onclick="resetReportForm()">
+          <i class="ti ti-plus"></i> Criar nova task
+        </button>`;
+    }
+  };
+
+  (function initStandalone() {
+    window._ctExtraInfo = [];
+    initCriarTaskDrop();
+  })();
+</script>
+</body>
+</html>

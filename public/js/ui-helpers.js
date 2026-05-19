@@ -38,10 +38,14 @@ function toggleTheme() {
 
 function updateStats() {
   localStorage.setItem('elixir_stats', JSON.stringify(stats));
-  document.getElementById('kpi-tasks').innerHTML = `<span>${stats.tasks}</span>`;
-  document.getElementById('kpi-pr').innerHTML    = `<span>${stats.pr}</span>`;
-  document.getElementById('kpi-sup').innerHTML   = `<span>${stats.sup}</span>`;
-  document.getElementById('kpi-feat').innerHTML  = `<span>${stats.feat}</span>`;
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `<span>${val}</span>`;
+  };
+  set('kpi-tasks', stats.tasks);
+  set('kpi-pr',    stats.pr);
+  set('kpi-sup',   stats.sup);
+  set('kpi-feat',  stats.feat);
 }
 
 function ctSleep(ms) { return new Promise(r => setTimeout(r, ms)); }

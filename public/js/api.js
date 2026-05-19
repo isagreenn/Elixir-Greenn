@@ -2,11 +2,12 @@
 // Google Gemini — chamada principal de IA
 // ────────────────────────────────────────────────────────
 async function callAI(userMessage) {
-  if (!apiKey) {
-    openModal();
+  const key = window.GEMINI_API_KEY || apiKey;
+  if (!key) {
+    if (typeof openModal === 'function') openModal();
     throw new Error('API Key não configurada');
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -15,7 +16,7 @@ async function callAI(userMessage) {
       contents: [{ role: 'user', parts: [{ text: userMessage }] }],
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 4096,
         responseMimeType: 'application/json'
       }
     })
@@ -26,8 +27,43 @@ async function callAI(userMessage) {
   }
   const data = await res.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const finishReason = data.candidates?.[0]?.finishReason;
   const clean = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(clean);
+
+  try {
+    return JSON.parse(clean);
+  } catch (parseErr) {
+    if (finishReason && finishReason !== 'STOP') {
+      throw new Error(`IA cortou a resposta (${finishReason}). Tente novamente ou reduza o texto do report.`);
+    }
+    const repaired = repairTruncatedJson(clean);
+    if (repaired) {
+      try { return JSON.parse(repaired); } catch (_) { /* fall through */ }
+    }
+    console.error('JSON malformado da IA:', clean);
+    throw new Error(`Resposta da IA inválida. ${parseErr.message}`);
+  }
+}
+
+// Tenta consertar JSON truncado fechando string + estruturas pendentes.
+function repairTruncatedJson(s) {
+  if (!s) return null;
+  let inString = false, escape = false;
+  const stack = [];
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (escape) { escape = false; continue; }
+    if (c === '\\') { escape = true; continue; }
+    if (c === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (c === '{') stack.push('}');
+    else if (c === '[') stack.push(']');
+    else if (c === '}' || c === ']') stack.pop();
+  }
+  let fixed = s.replace(/,\s*$/, '');
+  if (inString) fixed += '"';
+  while (stack.length) fixed += stack.pop();
+  return fixed;
 }
 
 // ────────────────────────────────────────────────────────
@@ -40,21 +76,24 @@ async function ctCriarTaskClickUp(taskData, formInfo, files) {
     throw new Error('ClickUp não configurado. Defina VITE_CLICKUP_TOKEN e VITE_CLICKUP_LIST_ID no arquivo .env.');
   }
 
-  const anexosBloco = files.length
-    ? `\n\n**Anexos:**\n${Array.from(files).map(f => `- ${f.name}`).join('\n')}`
-    : '';
-
   const description =
-`**Cliente afetado:** ${formInfo.cliente}
+`Cliente afetado: ${formInfo.cliente}
 
-**Descrição do problema:**
-${taskData.descricao || formInfo.descricao || ''}${anexosBloco}`;
+Descrição do problema:
+${formInfo.descricao || ''}`;
+
+  const contextoIds = (taskData.contextos || [])
+    .map(label => CT_CONTEXTOS[label])
+    .filter(Boolean);
 
   const body = {
     name: taskData.titulo || formInfo.titulo,
     description,
     priority: CT_PRIORITY_MAP[formInfo.prioridade] || 3,
-    tags: ['bug', 'elixir-greenn']
+    tags: ['bug', 'elixir-greenn'],
+    custom_fields: contextoIds.length
+      ? [{ id: CT_CONTEXTO_FIELD_ID, value: contextoIds }]
+      : []
   };
 
   const res = await fetch(`https://api.clickup.com/api/v2/list/${listId}/task`, {

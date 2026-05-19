@@ -39,6 +39,7 @@ function toggleKeyVisibility() {
 function updateApiStatus() {
   const dot = document.getElementById('apiDot');
   const txt = document.getElementById('apiStatusText');
+  if (!dot || !txt) return;
   if (apiKey) {
     dot.className = 'api-dot connected';
     txt.textContent = 'API conectada · clique para editar';

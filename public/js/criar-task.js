@@ -244,9 +244,15 @@ Se INCOMPLETA (raro — só quando realmente não dá pra investigar):
 {"status":"incompleta","duvidas":"Texto único listando TUDO que precisa ser esclarecido em parágrafo ou lista markdown. Seja direto."}
 
 Se COMPLETA (caso padrão):
-{"status":"completa","tipo":"BUG","titulo":"[Contexto] - Descrição breve do problema","modulo":"nome do módulo Greenn","severidade":"Crítico|Alto|Médio|Baixo","descricao":"descrição estruturada com Passos / Comportamento esperado / Comportamento observado / Impacto","criterios":["critério 1","critério 2","critério 3"],"confianca":85}
+{"status":"completa","tipo":"BUG","titulo":"[Contexto] - Descrição breve do problema","modulo":"nome do módulo Greenn","severidade":"Crítico|Alto|Médio|Baixo","contextos":["Label 1","Label 2"],"confianca":85}
 
-Infira o módulo do vocabulário. Severidade default = Médio salvo se a descrição indicar bloqueio total (Crítico) ou cosmético (Baixo).`;
+# Regra do campo "contextos"
+"contextos" = array com 1 a 3 labels EXATOS da lista abaixo (case-sensitive). Escolha o(s) mais relevante(s) pro problema. Se em dúvida entre módulo macro e funcionalidade, prefira a funcionalidade (Status de Venda > Greenn ADM, Reembolso > Greenn ADM).
+
+Lista válida de contextos (use o label EXATO):
+${Object.keys(CT_CONTEXTOS).map(k => `- ${k}`).join('\n')}
+
+Foque em gerar "titulo" no padrão correto + "contextos" certos — são os campos usados. NÃO estruture descrição, NÃO liste critérios, NÃO escreva passos. A descrição original do reporter vai pra task como está. Severidade default = Médio salvo se a descrição indicar bloqueio total (Crítico) ou cosmético (Baixo).`;
 
   try {
     taskType = 'bug';
