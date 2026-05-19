@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elixir Greenn — Protótipo v1.0</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/layout.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="stylesheet" href="/css/modals.css">
+<link rel="stylesheet" href="/css/pages.css">
+</head>
+<body data-theme="dark">
+
+<!-- API MODAL -->
+<div class="api-modal-overlay" id="apiModal">
+  <div class="api-modal">
+    <h2>Configurar API Key — Google Gemini</h2>
+    <p>Para o Elixir Greenn funcionar, você precisa de uma chave da API do Google Gemini. A chave fica salva só no seu navegador.</p>
+    <div class="key-input-wrap">
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy...">
+      <button class="toggle-eye" onclick="toggleKeyVisibility()">
+        <i class="ti ti-eye" id="eyeIcon"></i>
+      </button>
+    </div>
+    <div class="api-hint">
+      Acesse <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a> → Create API key. A chave começa com <code style="font-size:11px;background:var(--bg3);padding:1px 4px;border-radius:3px">AIza</code>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveApiKey()">
+        <i class="ti ti-check"></i> Salvar e conectar
+      </button>
+      <button class="btn" onclick="closeModal()" id="cancelModalBtn" style="display:none">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CRIAR TASK MODAL -->
+<div class="api-modal-overlay" id="criarTaskModal">
+  <div class="task-modal">
+    <div class="task-modal-head">
+      <div>
+        <h2><i class="ti ti-wand" style="color:var(--green)"></i> Report bug cliente</h2>
+        <p>Descreva o bug e receba a task formatada pela IA.</p>
+      </div>
+      <button class="task-modal-close" onclick="closeCriarTaskModal()" aria-label="Fechar">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+
+    <div id="ct_formView">
+      <div class="tm-field">
+        <label>Título do problema<span class="req">*</span></label>
+        <input type="text" id="ct_titulo" placeholder="[ Status de venda ] - Usuário produtor relata divergência em status de venda">
+      </div>
+
+      <div class="tm-field">
+        <label>Descrição do problema<span class="req">*</span></label>
+        <textarea id="ct_descricao" placeholder="Ex: Ao acessar tela de saque aparece uma mensagem de erro interno"></textarea>
+      </div>
+
+      <div class="tm-field">
+        <label>Cliente afetado<span class="req">*</span></label>
+        <input type="text" id="ct_cliente" placeholder="Nome / e-mail / ID do cliente">
+      </div>
+
+      <div class="tm-field">
+        <label>Arquivos complementares</label>
+        <label class="tm-drop" id="ct_drop" for="ct_arquivos">
+          <input type="file" id="ct_arquivos" multiple hidden>
+          <div class="tm-drop-icon"><i class="ti ti-cloud-upload"></i></div>
+          <div class="tm-drop-text">
+            Solte seus arquivos aqui para <span>fazer upload</span>
+          </div>
+          <div class="tm-drop-hint">PNG, JPG, PDF, vídeo · até 25 MB</div>
+        </label>
+        <div class="tm-file-list" id="ct_fileList"></div>
+      </div>
+
+      <div class="tm-field">
+        <label>Prioridade<span class="req">*</span></label>
+        <select id="ct_prioridade">
+          <option value="">Selecionar prioridade</option>
+          <option>Urgente</option>
+          <option>Alta</option>
+          <option>Normal</option>
+          <option>Baixa</option>
+        </select>
+      </div>
+
+      <div class="tm-field">
+        <label>Observadores<span class="req">*</span></label>
+        <input type="text" id="ct_observadores" placeholder="Nomes separados por vírgula">
+      </div>
+
+      <div class="tm-actions" id="ct_actions">
+        <button class="btn" onclick="closeCriarTaskModal()">Cancelar</button>
+        <button class="btn btn-primary" id="btnGerarTaskModal" onclick="gerarTaskFromModal()">
+          <i class="ti ti-sparkles"></i> Gerar task com IA
+        </button>
+      </div>
+    </div>
+
+    <div class="tm-output" id="ct_outputWrap" style="display:none">
+      <div id="ct_outputInner"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo">
+        <span class="sb-logo-dot"></span>
+        ELIXIR <span>GREENN</span>
+      </div>
+      <div class="sb-version">Protótipo v1.0 · Isabella Keka</div>
+      <div class="sb-api-status" onclick="openModal()" id="apiStatus">
+        <span class="api-dot" id="apiDot"></span>
+        <span id="apiStatusText">Clique para configurar API</span>
+      </div>
+    </div>
+
+    <div class="sb-section">Principal</div>
+    <button class="nav-item active" onclick="goTo('home',this)">
+      <i class="ti ti-home"></i> Home
+    </button>
+
+    <div class="sb-section">Skills de QA</div>
+    <button class="nav-item" onclick="goTo('criar-task',this)">
+      <i class="ti ti-wand"></i> Criar task com IA
+    </button>
+    <button class="nav-item" onclick="goTo('triar-suporte',this)">
+      <i class="ti ti-headset"></i> Triar suporte
+    </button>
+    <button class="nav-item" onclick="goTo('avaliar-pr',this)">
+      <i class="ti ti-git-pull-request"></i> Avaliar PR
+    </button>
+    <button class="nav-item" onclick="goTo('avaliar-feature',this)">
+      <i class="ti ti-layout-grid"></i> Avaliar feature
+    </button>
+    <button class="nav-item" onclick="goTo('melhoria',this)">
+      <i class="ti ti-bulb"></i> Sugestão de melhoria
+    </button>
+
+    <div class="sb-section">Suporte / Comercial</div>
+    <button class="nav-item" onclick="goTo('suporte-ocorrencia',this)">
+      <i class="ti ti-message-report"></i> Relatar ocorrência
+    </button>
+
+    <div class="sb-section">ClickUp</div>
+    <button class="nav-item" onclick="goTo('clickup-sync',this)">
+      <i class="ti ti-refresh"></i> Sync e aprendizado
+      <span class="nav-badge" style="background:var(--purple-light);color:var(--purple)">IA</span>
+    </button>
+
+    <div class="sb-section">Conhecimento</div>
+    <button class="nav-item" onclick="goTo('hub-duvidas',this)">
+      <i class="ti ti-help-circle"></i> Hub de dúvidas
+    </button>
+    <button class="nav-item" onclick="goTo('trilha-gamificada',this)">
+      <i class="ti ti-trophy"></i> Trilha gamificada
+      <span class="nav-badge green" style="background:var(--green-light);color:var(--green-dark)">XP</span>
+    </button>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section">Histórico</div>
+    <button class="nav-item" onclick="goTo('historico',this)">
+      <i class="ti ti-history"></i> Tasks geradas
+      <span class="nav-badge" id="histCount">0</span>
+    </button>
+
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <i class="ti ti-sun" id="themeIcon"></i>
+      <span id="themeLabel">Modo claro</span>
+    </button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <span class="tb-title" id="pageTitle">Home</span>
+      <span class="tb-badge" id="pageBadge" style="background:var(--green-light);color:var(--green-dark);border-color:rgba(29,158,117,.3)">Bem-vinda</span>
+      <span class="tb-hint" id="topbarHint">Elixir Greenn · Protótipo v1.0</span>
+    </div>
+
+    <div class="page-content">
+
+      <!-- HOME -->
+      <div id="p-home" class="page active">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-val" id="kpi-tasks"><span>0</span></div>
+            <div class="kpi-lbl">tasks geradas</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-val" id="kpi-pr"><span>0</span></div>
+            <div class="kpi-lbl">PRs avaliados</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-val" id="kpi-sup"><span>0</span></div>
+            <div class="kpi-lbl">tickets triados</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-val" id="kpi-feat"><span>0</span></div>
+            <div class="kpi-lbl">features avaliadas</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-bolt"></i> Ações rápidas</div>
+          <div class="quick-actions">
+            <a class="qa-card" onclick="openCriarTaskModal()">
+              <div class="qa-icon" style="background:var(--green-light)">
+                <i class="ti ti-wand" style="color:var(--green-dark)"></i>
+              </div>
+              <div><h4>Criar task com IA</h4><p>Descreva o bug e receba a task formatada</p></div>
+            </a>
+            <a class="qa-card" onclick="goTo('avaliar-pr', document.querySelectorAll('.nav-item')[4])">
+              <div class="qa-icon" style="background:var(--purple-light)">
+                <i class="ti ti-git-pull-request" style="color:var(--purple)"></i>
+              </div>
+              <div><h4>Avaliar PR</h4><p>Riscos, áreas de teste e checklist</p></div>
+            </a>
+            <a class="qa-card" onclick="goTo('triar-suporte', document.querySelectorAll('.nav-item')[3])">
+              <div class="qa-icon" style="background:var(--blue-light)">
+                <i class="ti ti-headset" style="color:var(--blue)"></i>
+              </div>
+              <div><h4>Triar suporte</h4><p>Resposta, comando ou bug real</p></div>
+            </a>
+            <a class="qa-card" onclick="goTo('avaliar-feature', document.querySelectorAll('.nav-item')[5])">
+              <div class="qa-icon" style="background:var(--amber-light)">
+                <i class="ti ti-layout-grid" style="color:var(--amber)"></i>
+              </div>
+              <div><h4>Avaliar feature</h4><p>Riscos, casos de teste e lacunas</p></div>
+            </a>
+          </div>
+        </div>
+        <div class="panel" id="home-history-panel">
+          <div class="panel-title"><i class="ti ti-history"></i> Últimas geradas</div>
+          <div id="home-history-list">
+            <div class="empty-state">
+              <i class="ti ti-wand"></i>
+              Nenhuma task gerada ainda. Comece pela ação rápida acima.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CRIAR TASK -->
+      <div id="p-criar-task" class="page">
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-wand"></i> Descreva o problema</div>
+          <label>Tipo</label>
+          <div class="type-pills" id="taskTypePills">
+            <button class="type-pill active-bug" onclick="setTaskType('bug',this)">Bug</button>
+            <button class="type-pill" onclick="setTaskType('melhoria',this)">Melhoria</button>
+            <button class="type-pill" onclick="setTaskType('chore',this)">Chore</button>
+          </div>
+          <label style="margin-top:8px">Descrição livre</label>
+          <textarea id="taskInput" placeholder="Ex: Quando o cliente tenta fazer checkout no plano anual, o botão de confirmar fica travado após preencher o cartão. Acontece no Safari iOS 17..."></textarea>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="gerarTask()" id="btnGerarTask">
+              <i class="ti ti-sparkles"></i> Gerar task com IA
+            </button>
+            <button class="btn" onclick="clearTaskInput()">
+              <i class="ti ti-x"></i> Limpar
+            </button>
+          </div>
+        </div>
+        <div id="taskOutput" style="display:none">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-check"></i> Task gerada</div>
+            <div id="taskOutputInner"></div>
+            <div class="btn-row">
+              <button class="btn btn-sm" onclick="copyOutput('taskOutputInner')">
+                <i class="ti ti-copy"></i> Copiar
+              </button>
+              <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('task')">
+                <i class="ti ti-bookmark"></i> Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRIAR SUPORTE -->
+      <div id="p-triar-suporte" class="page">
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-headset"></i> Cole o ticket do suporte</div>
+          <textarea id="suporteInput" placeholder="Ex: Cliente diz que não consegue acessar o painel de afiliados. Ele fez login normalmente, mas ao clicar em Afiliados aparece tela branca. Conta no plano Pro. Já tentou limpar cache."></textarea>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="triarSuporteIA()" id="btnTriar">
+              <i class="ti ti-brain"></i> Analisar com IA
+            </button>
+          </div>
+        </div>
+        <div id="suporteOutput" style="display:none">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-check"></i> Resultado da triagem</div>
+            <div id="suporteOutputInner"></div>
+            <div class="btn-row">
+              <button class="btn btn-sm" onclick="copyOutput('suporteOutputInner')">
+                <i class="ti ti-copy"></i> Copiar
+              </button>
+              <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('suporte')">
+                <i class="ti ti-bookmark"></i> Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AVALIAR PR -->
+      <div id="p-avaliar-pr" class="page">
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-git-pull-request"></i> Avaliar PR / Merge Request</div>
+
+          <div class="type-pills" id="prModePills" style="margin-bottom:12px">
+            <button class="type-pill active-pr" onclick="setPRMode('link',this)"><i class="ti ti-link" style="font-size:12px"></i> Link do PR</button>
+            <button class="type-pill" onclick="setPRMode('pdf',this)"><i class="ti ti-file-type-pdf" style="font-size:12px"></i> PDF / Arquivo</button>
+            <button class="type-pill" onclick="setPRMode('texto',this)"><i class="ti ti-align-left" style="font-size:12px"></i> Texto / Diff</button>
+          </div>
+
+          <!-- MODO: LINK -->
+          <div id="pr-mode-link">
+            <label>Link do Pull Request ou Merge Request</label>
+            <input type="text" id="prLinkUrl" placeholder="Ex: https://github.com/empresa/repo/pull/142  ou  https://gitlab.com/.../merge_requests/38" style="margin-bottom:8px">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:10px">
+              <i class="ti ti-info-circle" style="font-size:13px;color:var(--blue);vertical-align:-2px"></i>
+              Cole o link do PR do GitHub, GitLab ou Bitbucket. O sistema vai extrair as informações da URL e analisar o impacto nos módulos da Greenn com base no título, branch, arquivos alterados e descrição que você informar abaixo.
+            </div>
+            <label>Título do PR</label>
+            <input type="text" id="prTituloLink" placeholder="Ex: feat: simplificar formulário de endereço no checkout" style="margin-bottom:8px">
+            <label>Arquivos alterados (cole a lista do diff, um por linha)</label>
+            <textarea id="prArquivos" style="min-height:80px" placeholder="CheckoutForm.jsx&#10;addressService.js&#10;validations.js&#10;checkout.test.js"></textarea>
+            <label style="margin-top:8px">Descrição das mudanças (resumo do que foi feito)</label>
+            <textarea id="prDescLink" style="min-height:80px" placeholder="Ex: Removidos 4 campos do formulário de endereço. Adicionado autopreenchimento via ViaCEP. validateAddress() refatorada para aceitar campos parciais."></textarea>
+          </div>
+
+          <!-- MODO: PDF -->
+          <div id="pr-mode-pdf" style="display:none">
+            <label>Faça upload do PDF ou arquivo de diff</label>
+            <div id="pdfDropZone" style="border:2px dashed var(--border2);border-radius:var(--radius-md);padding:28px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:10px" onclick="document.getElementById('pdfFileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+              <i class="ti ti-cloud-upload" style="font-size:28px;color:var(--text3);display:block;margin-bottom:8px"></i>
+              <div style="font-size:13px;color:var(--text2);font-weight:500">Clique para selecionar ou arraste o arquivo aqui</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:4px">PDF, TXT, .diff, .patch — máx 10MB</div>
+              <div id="pdfFileName" style="display:none;margin-top:10px;font-size:12px;color:var(--green);font-weight:500"></div>
+            </div>
+            <input type="file" id="pdfFileInput" accept=".pdf,.txt,.diff,.patch,text/*" style="display:none" onchange="handleFileSelect(this)">
+            <label>Título do PR (opcional)</label>
+            <input type="text" id="prTituloPDF" placeholder="Ex: fix: corrigir cálculo de split no checkout" style="margin-bottom:8px">
+            <label>Contexto adicional (opcional)</label>
+            <textarea id="prContextoPDF" style="min-height:60px" placeholder="Ex: Esse PR corrige um bug reportado em produção onde o split estava calculando errado para afiliados com múltiplos níveis."></textarea>
+          </div>
+
+          <!-- MODO: TEXTO -->
+          <div id="pr-mode-texto" style="display:none">
+            <label>Título do PR</label>
+            <input type="text" id="prTituloTexto" placeholder="Ex: refactor: migrar validações de pagamento para novo módulo" style="margin-bottom:8px">
+            <label>Cole o diff, descrição ou resumo das mudanças</label>
+            <textarea id="prInputTexto" style="min-height:140px" placeholder="Ex: Removidos 4 campos do formulário de endereço (bairro, complemento obrigatório, estado manual e país). Adicionado autopreenchimento via API ViaCEP ao digitar CEP.&#10;&#10;Arquivos alterados:&#10;- CheckoutForm.jsx: removidos campos, adicionado CEP lookup&#10;- addressService.js: novo método fetchAddressByCEP()&#10;- validations.js: validateAddress() aceita campos parciais&#10;&#10;Testes: checkout.test.js atualizado para novos cenários"></textarea>
+          </div>
+
+          <div class="btn-row" style="margin-top:12px">
+            <button class="btn btn-purple" onclick="avaliarPR()" id="btnAvaliarPR">
+              <i class="ti ti-shield-check"></i> Analisar PR com IA
+            </button>
+            <button class="btn" onclick="limparPR()">
+              <i class="ti ti-x"></i> Limpar
+            </button>
+          </div>
+        </div>
+
+        <div id="prOutput" style="display:none">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-shield-check"></i> Avaliação do PR</div>
+            <div id="prOutputInner"></div>
+          </div>
+
+          <div class="panel" id="prReportPanel" style="display:none">
+            <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
+              <span><i class="ti ti-file-analytics"></i> Relatório gerado automaticamente</span>
+              <span style="font-size:10px;color:var(--text3)" id="prReportTs"></span>
+            </div>
+            <div id="prReportInner" style="font-size:12px;color:var(--text2);line-height:1.75;white-space:pre-wrap;font-family:var(--font-body)"></div>
+            <div class="btn-row">
+              <button class="btn btn-sm" onclick="copyOutput('prReportInner')">
+                <i class="ti ti-copy"></i> Copiar relatório
+              </button>
+              <button class="btn btn-sm" onclick="downloadReport()">
+                <i class="ti ti-download"></i> Baixar .txt
+              </button>
+              <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('pr')">
+                <i class="ti ti-bookmark"></i> Salvar no histórico
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AVALIAR FEATURE -->
+      <div id="p-avaliar-feature" class="page">
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-layout-grid"></i> Descreva a feature para avaliar</div>
+          <label>Nome da feature</label>
+          <input type="text" id="featNome" placeholder="Ex: Checkout em 1 clique para usuários recorrentes" style="margin-bottom:10px">
+          <label>Descrição completa</label>
+          <textarea id="featInput" style="min-height:120px" placeholder="Ex: Usuários que já fizeram ao menos 1 compra na plataforma poderão ativar o checkout em 1 clique. O sistema salva o último método de pagamento e endereço. Na próxima compra, aparece um botão 'Comprar agora' que pula todas as etapas e vai direto para a confirmação. O usuário pode desativar nas configurações."></textarea>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="avaliarFeature()" id="btnAvaliarFeat" style="background:var(--amber);border-color:var(--amber)">
+              <i class="ti ti-analyze"></i> Avaliar feature com IA
+            </button>
+          </div>
+        </div>
+        <div id="featOutput" style="display:none">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-analyze"></i> Avaliação da feature</div>
+            <div id="featOutputInner"></div>
+            <div class="btn-row">
+              <button class="btn btn-sm" onclick="copyOutput('featOutputInner')">
+                <i class="ti ti-copy"></i> Copiar
+              </button>
+              <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('feature')">
+                <i class="ti ti-bookmark"></i> Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MELHORIA -->
+      <div id="p-melhoria" class="page">
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-bulb"></i> Descreva a fricção ou oportunidade</div>
+          <textarea id="melhoriaInput" placeholder="Ex: Clientes estão desistindo no checkout na etapa de endereço. O formulário pede muitos campos e vários obrigatórios parecem desnecessários. Muito abandono ali."></textarea>
+          <div class="btn-row">
+            <button class="btn btn-purple" onclick="gerarMelhoria()" id="btnMelhoria">
+              <i class="ti ti-sparkles"></i> Gerar hipótese de melhoria
+            </button>
+          </div>
+        </div>
+        <div id="melhoriaOutput" style="display:none">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-bulb"></i> Hipótese gerada</div>
+            <div id="melhoriaOutputInner"></div>
+            <div class="btn-row">
+              <button class="btn btn-sm" onclick="copyOutput('melhoriaOutputInner')">
+                <i class="ti ti-copy"></i> Copiar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUPORTE / COMERCIAL — RELATAR OCORRÊNCIA -->
+      <div id="p-suporte-ocorrencia" class="page">
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-message-report"></i> Relatar ocorrência de cliente</div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px">
+            <i class="ti ti-info-circle" style="font-size:13px;color:var(--blue);vertical-align:-2px"></i>
+            A IA vai avaliar o problema <strong style="color:var(--text2)">antes</strong> de abrir qualquer task — verificando se é dúvida, se pode ser resolvido por comando, se precisa de mais informações do cliente, ou se realmente é um bug importante. Só confirma a abertura se for necessário.
+          </div>
+          <label>Descrição do problema relatado pelo cliente</label>
+          <textarea id="ocorrenciaInput" style="min-height:100px" placeholder="Ex: Cliente do plano Pro ligou dizendo que tentou fazer upgrade para anual mas o botão de confirmar não responde. Ele está no celular, Safari. Já tentou reiniciar o app. Aconteceu duas vezes hoje."></textarea>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+            <div>
+              <label>Canal de origem</label>
+              <div class="type-pills" id="canalPills">
+                <button class="type-pill active-sup" onclick="setCanal('suporte',this)">Suporte</button>
+                <button class="type-pill" onclick="setCanal('comercial',this)">Comercial</button>
+                <button class="type-pill" onclick="setCanal('chat',this)">Chat</button>
+              </div>
+            </div>
+            <div>
+              <label>Tem evidência visual?</label>
+              <div class="type-pills" id="evidenciaPills">
+                <button class="type-pill active-sup" onclick="setEvidencia('sim',this)">Sim — anexei</button>
+                <button class="type-pill" onclick="setEvidencia('nao',this)">Não tenho</button>
+              </div>
+            </div>
+          </div>
+
+          <label style="margin-top:10px">Link de vídeo ou imagem (opcional)</label>
+          <input type="text" id="ocorrenciaLink" placeholder="https://drive.google.com/... ou https://loom.com/..." style="margin-bottom:4px">
+
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn btn-primary" onclick="avaliarOcorrencia()" id="btnOcorrencia">
+              <i class="ti ti-brain"></i> Avaliar com IA
+            </button>
+            <button class="btn" onclick="limparOcorrencia()"><i class="ti ti-x"></i> Limpar</button>
+          </div>
+        </div>
+
+        <div id="ocorrenciaOutput" style="display:none">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-analyze"></i> Análise da ocorrência</div>
+            <div id="ocorrenciaOutputInner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLICKUP SYNC E APRENDIZADO -->
+      <div id="p-clickup-sync" class="page">
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-refresh"></i> Sincronização com ClickUp — aprendizado da IA</div>
+          <div style="background:rgba(83,74,183,0.08);border:1px solid rgba(83,74,183,0.2);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px">
+            <div style="font-size:12px;color:var(--purple);font-weight:500;margin-bottom:5px"><i class="ti ti-brain" style="vertical-align:-2px"></i> Como funciona</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.65">
+              O Elixir vai ler todas as tasks existentes no ClickUp e fazer um estudo profundo de padrões: quais módulos têm mais bugs, qual linguagem de título foi aprovada, bugs recorrentes e tempo de resolução. Esses dados enriquecem a KB e tornam a IA mais precisa para o contexto real da Greenn.
+            </div>
+          </div>
+
+          <label>Workspace ID ou URL do ClickUp</label>
+          <input type="text" id="clickupWorkspace" placeholder="Ex: https://app.clickup.com/12345678 ou ID: 12345678" style="margin-bottom:10px">
+
+          <label>Cole tasks de exemplo para análise (JSON, CSV ou texto livre)</label>
+          <textarea id="clickupTasksInput" style="min-height:130px" placeholder='Cole aqui tasks reais do ClickUp para a IA analisar e aprender. Pode ser em qualquer formato:
+
+Exemplo:
+[BUG] Checkout travando no Safari iOS - Resolvido em 2 dias - Checkout
+[BUG] Afiliados: comissão calculando errado - Resolvido em 5 dias - Afiliados
+[MELHORIA] Adicionar autopreenchimento de CEP - Entregue - Checkout
+[BUG] Pix não processando em fins de semana - Crítico - PaymentOps
+...
+
+Quanto mais tasks, mais rico o aprendizado da IA.'></textarea>
+
+          <div class="btn-row">
+            <button class="btn btn-purple" onclick="sincronizarClickUp()" id="btnSync">
+              <i class="ti ti-brain"></i> Analisar e enriquecer KB
+            </button>
+            <button class="btn" onclick="document.getElementById('clickupTasksInput').value='';document.getElementById('clickupSyncOutput').style.display='none'">
+              <i class="ti ti-x"></i> Limpar
+            </button>
+          </div>
+        </div>
+
+        <div id="clickupSyncOutput" style="display:none">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-chart-bar"></i> Estudo de padrões — resultado</div>
+            <div id="clickupSyncInner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HUB DE DÚVIDAS -->
+      <div id="p-hub-duvidas" class="page">
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-help-circle"></i> Hub de dúvidas — pergunte qualquer coisa sobre a Greenn</div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px">
+            <i class="ti ti-sparkles" style="color:var(--green);font-size:13px;vertical-align:-2px"></i>
+            A IA responde com contexto real da Greenn — módulos, regras de negócio, fluxos e comandos técnicos. Cada resposta útil é salva na KB para enriquecer o conhecimento do time.
+          </div>
+
+          <label>Seu perfil</label>
+          <div class="type-pills" id="perfilPills" style="margin-bottom:10px">
+            <button class="type-pill active-sup" onclick="setPerfil('dev',this)">Dev</button>
+            <button class="type-pill" onclick="setPerfil('suporte',this)">Suporte</button>
+            <button class="type-pill" onclick="setPerfil('qa',this)">QA</button>
+            <button class="type-pill" onclick="setPerfil('novato',this)">Novato</button>
+            <button class="type-pill" onclick="setPerfil('comercial',this)">Comercial</button>
+          </div>
+
+          <label>Sua dúvida</label>
+          <textarea id="duvidaInput" style="min-height:90px" placeholder="Ex: Qual comando uso para reprocessar um webhook de Pix que falhou?&#10;&#10;Ou: Qual a regra de negócio para split de pagamento com afiliados?&#10;&#10;Ou: Quais os passos que o QA faz no ciclo de uma feature?"></textarea>
+
+          <div id="duvida-exemplos" style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:2px">Exemplos rápidos — clique para usar:</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap" id="exemplos-chips"></div>
+          </div>
+
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn btn-primary" onclick="responderDuvida()" id="btnDuvida">
+              <i class="ti ti-search"></i> Buscar resposta
+            </button>
+            <button class="btn" onclick="document.getElementById('duvidaInput').value='';document.getElementById('duvidaOutput').style.display='none'">
+              <i class="ti ti-x"></i> Limpar
+            </button>
+          </div>
+        </div>
+
+        <div id="duvidaOutput" style="display:none">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-bulb"></i> Resposta</div>
+            <div id="duvidaOutputInner"></div>
+          </div>
+        </div>
+
+        <div class="panel" id="kbSavedPanel" style="display:none">
+          <div class="panel-title"><i class="ti ti-database"></i> Salvo na Knowledge Base</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6" id="kbSavedText"></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px"><i class="ti ti-users" style="vertical-align:-2px"></i> Esta resposta agora está disponível para todos do time que fizerem a mesma pergunta.</div>
+        </div>
+      </div>
+
+      <!-- TRILHA GAMIFICADA -->
+      <div id="p-trilha-gamificada" class="page">
+
+        <div class="kpi-grid" style="margin-bottom:12px">
+          <div class="kpi-card">
+            <div class="kpi-val" id="xp-total"><span>340</span></div>
+            <div class="kpi-lbl">XP total acumulado</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-val" id="nivel-atual"><span>2</span></div>
+            <div class="kpi-lbl">nível atual</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-val" id="missoes-ok"><span>3</span></div>
+            <div class="kpi-lbl">missões concluídas</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-val" id="missoes-pend"><span>1</span></div>
+            <div class="kpi-lbl">missões pendentes</div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom:10px">
+          <div class="panel-title"><i class="ti ti-stairs"></i> Sua progressão</div>
+          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:8px" id="nivel-grid"></div>
+          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:5px">
+            <div id="xp-bar" style="height:100%;background:var(--green);border-radius:3px;width:68%;transition:width .5s"></div>
+          </div>
+          <div style="font-size:11px;color:var(--text3)">340 / 500 XP para nível 3 — Especialista</div>
+        </div>
+
+        <div class="two-col" style="margin-bottom:10px">
+
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-book-upload"></i> Missão ativa — entregar resumo</div>
+            <div style="background:var(--purple-light);border:1px solid rgba(83,74,183,.3);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px">
+              <div style="font-size:12px;font-weight:500;color:var(--purple);margin-bottom:3px">📚 Missão atribuída pelo gestor</div>
+              <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px" id="missao-titulo">Accelerate — DevOps e alta performance</div>
+              <div style="font-size:11px;color:var(--text3)" id="missao-prazo">Prazo: 30/05/2025 · Valor: 150 XP</div>
+            </div>
+            <label>Seu resumo da leitura</label>
+            <textarea id="resumoInput" style="min-height:120px" placeholder="Escreva aqui seu resumo do conteúdo lido. Explique os principais pontos, o que você aprendeu e como isso se aplica ao seu trabalho na Greenn..."></textarea>
+            <div style="font-size:11px;color:var(--text3);margin-top:5px;margin-bottom:8px"><i class="ti ti-info-circle" style="vertical-align:-2px"></i> A IA vai avaliar: profundidade de compreensão, pontos-chave captados e conexão com o trabalho real.</div>
+            <button class="btn btn-primary" style="width:100%" onclick="avaliarResumo()" id="btnResumo">
+              <i class="ti ti-send"></i> Entregar resumo para avaliação
+            </button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-user-star"></i> Painel do gestor — missões</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div>
+                <label>Atribuir nova missão de leitura</label>
+                <input type="text" id="missaoTitulo" placeholder="Título do livro, artigo ou doc" style="margin-bottom:6px">
+                <textarea id="missaoDesc" style="min-height:50px" placeholder="Descrição e objetivo da leitura..."></textarea>
+                <div style="display:flex;gap:6px;margin-top:6px">
+                  <input type="text" id="missaoXP" placeholder="XP (ex: 150)" style="width:80px">
+                  <input type="text" id="missaoPrazo" placeholder="Prazo (ex: 30/05)" style="flex:1">
+                  <button class="btn btn-sm btn-primary" onclick="criarMissao()"><i class="ti ti-plus"></i> Criar</button>
+                </div>
+              </div>
+              <div style="border-top:.5px solid var(--border);padding-top:8px">
+                <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Missões ativas do time</div>
+                <div id="missoes-lista" style="display:flex;flex-direction:column;gap:5px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="avaliacaoOutput" style="display:none">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-certificate"></i> Avaliação da IA — resumo entregue</div>
+            <div id="avaliacaoInner"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- HISTÓRICO -->
+      <div id="p-historico" class="page">
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-history"></i> Todas as tasks geradas</div>
+          <div id="historicoList">
+            <div class="empty-state">
+              <i class="ti ti-history"></i>
+              Nenhuma task salva ainda.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Env vars do Vite (.env) — carrega antes de qualquer uso -->
+<script type="module" src="/src/env.js"></script>
+<!-- Scripts em ordem de dependência -->
+<script src="/js/config.js"></script>
+<script src="/js/ui-helpers.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/api-modal.js"></script>
+<script src="/js/history.js"></script>
+<script src="/js/criar-task.js"></script>
+<script src="/js/criar-task-page.js"></script>
+<script src="/js/triar-suporte.js"></script>
+<script src="/js/avaliar-pr.js"></script>
+<script src="/js/avaliar-feature.js"></script>
+<script src="/js/melhoria.js"></script>
+<script src="/js/suporte-ocorrencia.js"></script>
+<script src="/js/clickup-sync.js"></script>
+<script src="/js/hub-duvidas.js"></script>
+<script src="/js/trilha.js"></script>
+<script src="/js/navigation.js"></script>
+</body>
+</html>
