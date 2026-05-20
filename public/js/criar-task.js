@@ -141,7 +141,12 @@ function ctRenderQuestions(duvidasTexto) {
 function ctEnviarRespostas() {
   const v = document.getElementById('ct_resposta').value.trim();
   if (!v) { showToast('Preencha a resposta', 'error'); return; }
-  window._ctExtraInfo = (window._ctExtraInfo || []).concat(['Resposta às dúvidas da IA: ' + v]);
+  const duvidasEl = document.querySelector('.tm-duvidas-box');
+  const perguntas = duvidasEl ? duvidasEl.innerText.trim() : '';
+  const block = perguntas
+    ? `Perguntas levantadas pela IA:\n${perguntas}\n\nResposta do reporter:\n${v}`
+    : `Resposta às dúvidas da IA: ${v}`;
+  window._ctExtraInfo = (window._ctExtraInfo || []).concat([block]);
   gerarTaskFromModal();
 }
 
@@ -180,16 +185,12 @@ async function gerarTaskFromModal() {
   outWrap.style.display = 'block';
 
   ctInitSteps();
-  let active = 0;
+  // Step 0 — validação sync já feita
   ctSetStep(0, 'active');
-
-  const stepTimer = setInterval(() => {
-    if (active < CT_STEPS.length - 1) {
-      ctSetStep(active, 'done');
-      active++;
-      ctSetStep(active, 'active');
-    }
-  }, 900);
+  await ctSleep(220);
+  ctSetStep(0, 'done');
+  // Step 1 — análise IA (real wait)
+  ctSetStep(1, 'active');
 
   const arquivosNomes = arquivos.length
     ? Array.from(arquivos).map(f => f.name).join(', ')
@@ -217,6 +218,32 @@ Sinais de info insuficiente (peça mais):
 - Falta totalmente o passo principal pra reproduzir
 
 NÃO pergunte sobre: navegador/SO/versão (a menos que o report seja sobre comportamento visual específico), data/hora, plano do cliente — assuma o normal. NÃO duplique pergunta sobre coisa já mencionada na descrição.
+
+# Evidências obrigatórias por ESCOPO (regra de bloqueio)
+ANTES de classificar como "completa", identifique o ESCOPO do problema pelo vocabulário da descrição/título e exija as evidências mínimas do escopo. Se faltar QUALQUER evidência obrigatória do escopo detectado, marque "incompleta" e peça SÓ o que falta — sem repetir o que já está no report.
+
+Como aplicar:
+1. Detecte o escopo (pode ser mais de um).
+2. Confira na descrição se cada evidência obrigatória está presente (e-mail, ID, URL, prints, etc).
+3. Considera "presente" qualquer ocorrência razoável: e-mail no formato x@y, ID numérico ou alfanumérico mencionado como "ID/venda/pedido/transação", URL completa (https://...) ou domínio identificável (ex: pay.greenn.com.br/...).
+4. Se faltar, retorne "incompleta" listando NOMINALMENTE o que precisa.
+
+Tabela de escopos → evidências obrigatórias:
+
+| Escopo (palavras-gatilho na descrição/título) | Evidências obrigatórias |
+|-----------------------------------------------|-------------------------|
+| Reembolso, "reembolso pendente", estorno | (e-mail do cliente final) OU (ID da venda/pedido/transação) |
+| Status de venda, venda travada, "venda não aparece", reconciliação, saldo divergente, antecipação | (e-mail do cliente final) OU (ID da venda/pedido/transação) |
+| Checkout (não abre, não passa, erro ao pagar), Order Bump, Cupom não aplica | URL completa do checkout afetado (Payfast / pay.greenn / link específico do produto) |
+| Recusa de pagamento, cobrança recorrente, Pix expirado, cartão recusado | (ID da venda/transação) OU (e-mail do cliente final) + método de pagamento (Pix/cartão/boleto) |
+| Afiliados, comissão, split | (e-mail do afiliado) OU (ID do produto/oferta) |
+| Área de membros / Club, aula não abre, acesso negado | (e-mail do aluno) + (nome do produto/curso ou URL do módulo) |
+| Saque | (e-mail do produtor) OU (ID do saque) |
+| Aplicativo, mobile, app não abre | (modelo do aparelho) + (sistema operacional: iOS/Android) |
+| Bug visual / layout quebrado | (print ou link de print) OU (navegador específico) |
+| Integrações (webhook, postback, API externa) | (URL do webhook OU nome da integração) + (payload de exemplo OU ID da venda) |
+
+Se o escopo não estiver na tabela, use o mesmo princípio: peça o identificador único do registro afetado (e-mail/ID/URL) que permita o dev reproduzir.
 
 # REGRA OBRIGATÓRIA DE TÍTULO
 O campo "titulo" DEVE seguir EXATAMENTE este padrão:
@@ -246,8 +273,8 @@ ${extras ? '\nInformações complementares já fornecidas:\n' + extras : ''}
 # Formato de saída
 O campo "status" é OBRIGATÓRIO. Retorne APENAS um destes dois JSONs, sem markdown:
 
-Se INCOMPLETA (raro — só quando realmente não dá pra investigar):
-{"status":"incompleta","duvidas":"Texto único listando TUDO que precisa ser esclarecido em parágrafo ou lista markdown. Seja direto."}
+Se INCOMPLETA (use sempre que faltar evidência obrigatória do escopo OU passos mínimos pra reproduzir):
+{"status":"incompleta","duvidas":"Lista markdown numerada com cada item NOMEANDO a evidência que falta + por que é necessária. Seja específico — 'qual o e-mail do cliente afetado?' é melhor que 'mais detalhes'. Exemplos: '1. E-mail do cliente final ou ID da venda (sem isso não dá pra localizar o pedido no banco). 2. Link do checkout do Payfast onde o erro ocorre.'"}
 
 Se COMPLETA (caso padrão):
 {"status":"completa","tipo":"BUG","titulo":"[Contexto] - Descrição breve do problema","modulo":"nome do módulo Greenn","severidade":"Crítico|Alto|Médio|Baixo","contextos":["Label 1","Label 2"],"confianca":85}
@@ -264,33 +291,35 @@ Foque em gerar "titulo" no padrão correto + "contextos" certos — são os camp
     taskType = 'bug';
     const data = await callAI(prompt);
 
-    clearInterval(stepTimer);
-
     const duvidas = data.duvidas
       || (Array.isArray(data.perguntas) ? data.perguntas.join('\n- ') : data.perguntas);
+
     if (data.status === 'incompleta' && duvidas) {
+      // Análise concluída mas com lacunas — pula etapas restantes, renderiza perguntas.
+      ctSetStep(1, 'done');
       ctRenderQuestions(duvidas);
       ctSetActions('hidden');
-    } else {
-      ctSetStep(active, 'done');
-      for (let i = active + 1; i < CT_STEPS.length - 1; i++) {
-        ctSetStep(i, 'active');
-        await ctSleep(380);
-        ctSetStep(i, 'done');
-      }
-      ctSetStep(CT_STEPS.length - 1, 'active');
-      const formInfo = { titulo, descricao, cliente, prioridade, observadores };
-      const { id: taskId, url: taskUrl } = await ctCriarTaskClickUp(data, formInfo, arquivos);
-      ctSetStep(CT_STEPS.length - 1, 'done');
-      await ctSleep(350);
-      ctRenderSuccess(data, taskUrl, taskId);
-      ctSetActions('success');
-      window._lastTask = { ...data, _clickup_url: taskUrl, _clickup_id: taskId };
-      stats.tasks++;
-      updateStats();
+      return;
     }
+
+    // Step 1 done — IA analisou e classificou completa
+    ctSetStep(1, 'done');
+    // Step 2 — estruturação local (mapeia contextos, monta payload)
+    ctSetStep(2, 'active');
+    await ctSleep(380);
+    ctSetStep(2, 'done');
+    // Step 3 — chamada real ClickUp
+    ctSetStep(3, 'active');
+    const formInfo = { titulo, descricao, cliente, prioridade, observadores };
+    const { id: taskId, url: taskUrl } = await ctCriarTaskClickUp(data, formInfo, arquivos);
+    ctSetStep(3, 'done');
+    await ctSleep(280);
+    ctRenderSuccess(data, taskUrl, taskId);
+    ctSetActions('success');
+    window._lastTask = { ...data, _clickup_url: taskUrl, _clickup_id: taskId };
+    stats.tasks++;
+    updateStats();
   } catch(e) {
-    clearInterval(stepTimer);
     showToast(e.message, 'error');
     outWrap.style.display = 'none';
     document.getElementById('ct_formView').style.display = 'block';

@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Report bug · Elixir Greenn</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<script>
+  // Aplica tema antes do paint pra evitar FOUC.
+  (function() {
+    var saved = localStorage.getItem('elixir_theme');
+    var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var theme = saved || (systemDark ? 'dark' : 'light');
+    document.documentElement.dataset.theme = theme;
+  })();
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
@@ -27,6 +36,42 @@
     align-items: center;
     justify-content: center;
     gap: 28px;
+    position: relative;
+    --mx: 50%;
+    --my: 0%;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(
+      600px circle at var(--mx) var(--my),
+      rgba(29,158,117,0.18),
+      rgba(29,158,117,0.06) 30%,
+      transparent 60%
+    );
+    transition: background-position .08s linear;
+    will-change: background;
+  }
+  body > * { position: relative; z-index: 1; }
+
+  .rp-theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 100;
+    width: 38px; height: 38px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--surface, var(--bg2));
+    border: 1px solid var(--border2);
+    color: var(--text);
+    cursor: pointer; font-size: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.18);
+    transition: transform .15s, border-color .15s, color .15s;
+  }
+  .rp-theme-toggle:hover {
+    transform: translateY(-1px);
+    border-color: var(--green);
+    color: var(--green);
   }
 
   .rp-hero {
@@ -166,7 +211,11 @@
   }
 </style>
 </head>
-<body data-theme="dark">
+<body>
+
+<button class="rp-theme-toggle" id="rpThemeToggle" title="Alternar tema" aria-label="Alternar tema">
+  <i class="ti ti-sun" id="rpThemeIcon"></i>
+</button>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -499,11 +548,51 @@
     renderPanel('');
   }
 
+  // ── Theme toggle ────────────────────────────────────────
+  function initThemeToggle() {
+    const btn = document.getElementById('rpThemeToggle');
+    const icon = document.getElementById('rpThemeIcon');
+    const current = document.documentElement.dataset.theme || 'dark';
+    setIcon(current);
+    btn.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('elixir_theme', next);
+      setIcon(next);
+    });
+    // segue OS se usuário ainda não escolheu manualmente
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (!localStorage.getItem('elixir_theme')) {
+        const t = e.matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = t;
+        setIcon(t);
+      }
+    });
+    function setIcon(theme) {
+      icon.className = theme === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+    }
+  }
+
+  // ── Cursor glow ─────────────────────────────────────────
+  function initCursorGlow() {
+    let raf = 0, tx = 0, ty = 0;
+    window.addEventListener('pointermove', e => {
+      tx = e.clientX; ty = e.clientY;
+      if (!raf) raf = requestAnimationFrame(() => {
+        document.body.style.setProperty('--mx', tx + 'px');
+        document.body.style.setProperty('--my', ty + 'px');
+        raf = 0;
+      });
+    }, { passive: true });
+  }
+
   (function initStandalone() {
     window._ctExtraInfo = [];
     initCriarTaskDrop();
     initCustomSelects();
     initObservadoresSelect();
+    initCursorGlow();
+    initThemeToggle();
   })();
 </script>
 </body>

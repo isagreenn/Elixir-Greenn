@@ -76,11 +76,16 @@ async function ctCriarTaskClickUp(taskData, formInfo, files) {
     throw new Error('ClickUp não configurado. Defina VITE_CLICKUP_TOKEN e VITE_CLICKUP_LIST_ID no arquivo .env.');
   }
 
+  const extras = Array.isArray(window._ctExtraInfo) ? window._ctExtraInfo : [];
+  const extrasBlock = extras.length
+    ? `\n\nInformações complementares:\n${extras.join('\n')}`
+    : '';
+
   const description =
 `Cliente afetado: ${formInfo.cliente}
 
 Descrição do problema:
-${formInfo.descricao || ''}`;
+${formInfo.descricao || ''}${extrasBlock}`;
 
   const contextoIds = (taskData.contextos || [])
     .map(label => CT_CONTEXTOS[label])
