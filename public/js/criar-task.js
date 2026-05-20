@@ -10,6 +10,12 @@ function openCriarTaskModal() {
   initCriarTaskDrop();
 }
 
+function openCriarTaskModalPrefill(titulo, descricao) {
+  openCriarTaskModal();
+  if (titulo)   document.getElementById('ct_titulo').value    = titulo;
+  if (descricao) document.getElementById('ct_descricao').value = descricao;
+}
+
 function closeCriarTaskModal() {
   document.getElementById('criarTaskModal').classList.remove('open');
 }

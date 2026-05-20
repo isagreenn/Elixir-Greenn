@@ -122,8 +122,8 @@ function renderOcorrenciaOutput(d) {
         </div>
         <div class="btn-row">
           <button class="btn btn-sm" onclick="copyOutput('ocorrenciaOutputInner')"><i class="ti ti-copy"></i> Copiar</button>
-          <button class="btn btn-sm btn-primary" onclick="showToast('Task enviada ao Elixir e ClickUp!','success')">
-            <i class="ti ti-send"></i> Abrir no Elixir + ClickUp
+          <button class="btn btn-sm btn-primary" onclick="openCriarTaskModalPrefill(window._lastOcorrencia?.task?.titulo, window._lastOcorrencia?.task?.descricao)">
+            <i class="ti ti-wand"></i> Criar task com IA
           </button>
         </div>`;
     }

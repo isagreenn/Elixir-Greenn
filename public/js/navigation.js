@@ -16,6 +16,13 @@ function goTo(pageId, btn) {
     'suporte-ocorrencia':  ['Relatar ocorrência', 'Suporte / Comercial', 'var(--green-light)', 'var(--green-dark)', 'rgba(29,158,117,.3)'],
     'clickup-sync':        ['ClickUp — Sync e aprendizado', 'IA aprende com o ClickUp', 'var(--purple-light)', 'var(--purple)', 'rgba(83,74,183,.3)'],
     historico:             ['Histórico', 'Todas as tasks', 'var(--bg3)', 'var(--text2)', 'var(--border)'],
+    'hub-duvidas':         ['Hub de dúvidas', 'Conhecimento', 'var(--green-light)', 'var(--green-dark)', 'rgba(29,158,117,.3)'],
+    'trilha-gamificada':   ['Trilha gamificada', 'XP & Missões', 'var(--purple-light)', 'var(--purple)', 'rgba(83,74,183,.3)'],
+    'dashboard-view':      ['Dashboard', 'Sprint atual', 'var(--green-light)', 'var(--green-dark)', 'rgba(29,158,117,.3)'],
+    'qa-skills':           ['QA Skills', 'QA & Produto', 'var(--purple-light)', 'var(--purple)', 'rgba(83,74,183,.3)'],
+    'feature-hub':         ['Feature Hub', 'QA & Produto', 'var(--purple-light)', 'var(--purple)', 'rgba(83,74,183,.3)'],
+    reports:               ['Relatórios Sprint', 'Análise', 'var(--blue-light)', 'var(--blue)', 'rgba(24,95,165,.3)'],
+    'mobile-feed':         ['Feed Mobile', 'Suporte / Comercial', 'var(--green-light)', 'var(--green-dark)', 'rgba(29,158,117,.3)'],
   };
   const t = titles[pageId] || ['', '', '', '', ''];
   document.getElementById('pageTitle').textContent = t[0];
@@ -34,7 +41,6 @@ function init() {
   renderNivelGrid();
   renderMissoesList();
   updateTrilhaKPIs();
-  if (!apiKey) openModal();
 }
 
 init();

@@ -32,4 +32,32 @@
   .kpi-grid { grid-template-columns: repeat(2,1fr); }
   .two-col { grid-template-columns: 1fr; }
   .quick-actions { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
 }
+
+/* ── KPI CARD v2 — delta stripe + colored em ─────────────── */
+.kpi-card { position: relative; overflow: hidden; transition: border-color .15s, transform .15s; }
+.kpi-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--accent, var(--green)); opacity: .7;
+}
+.kpi-val em { color: var(--accent, var(--green)); font-style: normal; }
+
+/* ── NEW PAGES ───────────────────────────────────────────── */
+.page { animation: viewIn .25s ease both; }
+
+/* dashboard-view */
+#p-dashboard-view .grid-2,
+#p-dashboard-view .grid-3,
+#p-dashboard-view .grid-4 { margin-bottom: 16px; }
+
+/* qa-skills */
+#p-qa-skills .tabs { margin-bottom: 16px; }
+
+/* feature-hub */
+#p-feature-hub .feat-header { margin-bottom: 16px; }
+
+/* mobile-feed */
+#p-mobile-feed .page-hdr { margin-bottom: 20px; }
+#p-mobile-feed > .page-hdr + div { display: flex; justify-content: center; padding: 20px 0; }

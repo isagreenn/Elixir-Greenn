@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Elixir Greenn — Protótipo v1.0</title>
+<title>Elixir Greenn — Plataforma de Inteligência Operacional</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
 <link rel="stylesheet" href="/css/base.css">
@@ -17,7 +17,9 @@
 </head>
 <body data-theme="dark">
 
-<!-- API MODAL -->
+<!-- ═══════════════════════════════════════════════════════
+   API MODAL
+════════════════════════════════════════════════════════ -->
 <div class="api-modal-overlay" id="apiModal">
   <div class="api-modal">
     <h2>Configurar API Key — Google Gemini</h2>
@@ -40,7 +42,9 @@
   </div>
 </div>
 
-<!-- CRIAR TASK MODAL -->
+<!-- ═══════════════════════════════════════════════════════
+   CRIAR TASK MODAL
+════════════════════════════════════════════════════════ -->
 <div class="api-modal-overlay" id="criarTaskModal">
   <div class="task-modal">
     <div class="task-modal-head">
@@ -52,36 +56,29 @@
         <i class="ti ti-x"></i>
       </button>
     </div>
-
     <div id="ct_formView">
       <div class="tm-field">
         <label>Título do problema<span class="req">*</span></label>
         <input type="text" id="ct_titulo" placeholder="[ Status de venda ] - Usuário produtor relata divergência em status de venda">
       </div>
-
       <div class="tm-field">
         <label>Descrição do problema<span class="req">*</span></label>
         <textarea id="ct_descricao" placeholder="Ex: Ao acessar tela de saque aparece uma mensagem de erro interno"></textarea>
       </div>
-
       <div class="tm-field">
         <label>Cliente afetado<span class="req">*</span></label>
         <input type="text" id="ct_cliente" placeholder="Nome / e-mail / ID do cliente">
       </div>
-
       <div class="tm-field">
         <label>Arquivos complementares</label>
         <label class="tm-drop" id="ct_drop" for="ct_arquivos">
           <input type="file" id="ct_arquivos" multiple hidden>
           <div class="tm-drop-icon"><i class="ti ti-cloud-upload"></i></div>
-          <div class="tm-drop-text">
-            Solte seus arquivos aqui para <span>fazer upload</span>
-          </div>
+          <div class="tm-drop-text">Solte seus arquivos aqui para <span>fazer upload</span></div>
           <div class="tm-drop-hint">PNG, JPG, PDF, vídeo · até 25 MB</div>
         </label>
         <div class="tm-file-list" id="ct_fileList"></div>
       </div>
-
       <div class="tm-field">
         <label>Prioridade<span class="req">*</span></label>
         <select id="ct_prioridade">
@@ -92,12 +89,10 @@
           <option>Baixa</option>
         </select>
       </div>
-
       <div class="tm-field">
         <label>Observadores<span class="req">*</span></label>
         <input type="text" id="ct_observadores" placeholder="Nomes separados por vírgula">
       </div>
-
       <div class="tm-actions" id="ct_actions">
         <button class="btn" onclick="closeCriarTaskModal()">Cancelar</button>
         <button class="btn btn-primary" id="btnGerarTaskModal" onclick="gerarTaskFromModal()">
@@ -105,7 +100,6 @@
         </button>
       </div>
     </div>
-
     <div class="tm-output" id="ct_outputWrap" style="display:none">
       <div id="ct_outputInner"></div>
     </div>
@@ -115,590 +109,945 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<div class="app">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sb-header">
-      <div class="sb-logo">
-        <span class="sb-logo-dot"></span>
-        ELIXIR <span>GREENN</span>
+<!-- ═══════════════════════════════════════════════════════
+   LOGIN SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="login" class="screen active">
+  <div class="login-bg"></div>
+  <div class="login-grid"></div>
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-logo">ELIXIR <em>GREENN</em></div>
+      <div class="login-sub">Plataforma de Inteligência Operacional</div>
+    </div>
+
+    <div class="login-role-select">
+      <span class="lrs-label">Seu perfil de acesso</span>
+      <div class="lrs-grid" id="roleGrid">
+        <div class="role-chip selected" data-role="qa" onclick="selectRole('qa',this)"><span class="ri">🧪</span>QA</div>
+        <div class="role-chip" data-role="po" onclick="selectRole('po',this)"><span class="ri">♛</span>PO</div>
+        <div class="role-chip" data-role="cto" onclick="selectRole('cto',this)"><span class="ri">🏗️</span>CTO</div>
+        <div class="role-chip" data-role="manager" onclick="selectRole('manager',this)"><span class="ri">📊</span>Manager</div>
+        <div class="role-chip" data-role="support" onclick="selectRole('support',this)"><span class="ri">🎧</span>Suporte</div>
+        <div class="role-chip" data-role="dev" onclick="selectRole('dev',this)"><span class="ri">💻</span>Dev</div>
       </div>
-      <div class="sb-version">Protótipo v1.0 · Isabella Keka</div>
+    </div>
+
+    <button class="login-btn-g">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      Entrar com Google
+    </button>
+
+    <div class="login-divider"><span>ou</span></div>
+
+    <div class="login-field">
+      <label class="lf-label">E-mail</label>
+      <input class="lf-input" type="email" placeholder="isabella@greenn.com.br" value="isabella@greenn.com.br">
+    </div>
+    <div class="login-field">
+      <label class="lf-label">Senha</label>
+      <input class="lf-input" type="password" value="••••••••••">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Entrar no sistema →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+   APP SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="app" class="screen">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-logo">ELIXIR <em>GREENN</em></div>
+    <div class="tb-divider"></div>
+    <span id="pageTitle" class="tb-breadcrumb">Dashboard</span>
+    <span id="pageBadge" class="tb-badge" style="background:var(--nav-active-bg);color:var(--gl);border-color:rgba(29,158,117,.3)">Bem-vinda</span>
+    <div class="tb-spacer"></div>
+    <div class="tb-search"><i class="ti ti-search"></i>Buscar no sistema...</div>
+    <div class="tb-actions">
+      <button class="tb-icon-btn" data-tip="Notificações">
+        <i class="ti ti-bell"></i>
+        <span class="tb-notif"></span>
+      </button>
+      <button class="tb-icon-btn" onclick="openModal()" data-tip="API Key Gemini">
+        <i class="ti ti-key"></i>
+      </button>
+      <div class="avatar-btn" onclick="toggleRoleMenu()">
+        <div class="av-img" id="avImg" style="background:var(--blue)">IK</div>
+        <div class="av-info">
+          <div class="av-name">Isabella Keka</div>
+          <div class="av-role" id="avRole">QA</div>
+        </div>
+        <i class="ti ti-chevron-down" style="font-size:12px;color:var(--text3)"></i>
+        <div class="role-menu" id="roleMenu">
+          <div class="rm-header">Trocar perfil</div>
+          <div class="rm-item active" data-role="qa" onclick="switchRole('qa',event)"><div class="rm-av" style="background:var(--blue)">IK</div><div class="rm-text"><div class="rm-name">Isabella Keka</div><div class="rm-role">QA</div></div><i class="ti ti-check rm-check"></i></div>
+          <div class="rm-item" data-role="po" onclick="switchRole('po',event)"><div class="rm-av" style="background:var(--green)">AP</div><div class="rm-text"><div class="rm-name">Ana Paula PO</div><div class="rm-role">Product Owner</div></div></div>
+          <div class="rm-item" data-role="cto" onclick="switchRole('cto',event)"><div class="rm-av" style="background:var(--purple)">TL</div><div class="rm-text"><div class="rm-name">Tech Lead</div><div class="rm-role">CTO / Tech Lead</div></div></div>
+          <div class="rm-item" data-role="manager" onclick="switchRole('manager',event)"><div class="rm-av" style="background:var(--amber)">MG</div><div class="rm-text"><div class="rm-name">Manager</div><div class="rm-role">Gerente</div></div></div>
+          <div class="rm-item" data-role="support" onclick="switchRole('support',event)"><div class="rm-av" style="background:var(--red)">SP</div><div class="rm-text"><div class="rm-name">Suporte</div><div class="rm-role">Suporte / Comercial</div></div></div>
+          <div class="rm-divider"></div>
+          <div class="rm-logout" onclick="doLogout()"><i class="ti ti-logout" style="font-size:14px"></i>Sair do sistema</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP BODY -->
+  <div class="app-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sb-role-indicator">
+        <div class="sri-label">Perfil ativo</div>
+        <div class="sri-role" id="sriRole">QA — Isabella Keka</div>
+      </div>
+
       <div class="sb-api-status" onclick="openModal()" id="apiStatus">
         <span class="api-dot" id="apiDot"></span>
         <span id="apiStatusText">Clique para configurar API</span>
       </div>
-    </div>
 
-    <div class="sb-section">Principal</div>
-    <button class="nav-item active" onclick="goTo('home',this)">
-      <i class="ti ti-home"></i> Home
-    </button>
+      <div class="sb-section">Principal</div>
+      <button class="nav-item active" data-page="dashboard-view" onclick="goTo('dashboard-view',this)">
+        <i class="ti ti-home"></i> Dashboard
+      </button>
 
-    <div class="sb-section">Skills de QA</div>
-    <button class="nav-item" onclick="goTo('criar-task',this)">
-      <i class="ti ti-wand"></i> Criar task com IA
-    </button>
-    <button class="nav-item" onclick="goTo('triar-suporte',this)">
-      <i class="ti ti-headset"></i> Triar suporte
-    </button>
-    <button class="nav-item" onclick="goTo('avaliar-pr',this)">
-      <i class="ti ti-git-pull-request"></i> Avaliar PR
-    </button>
-    <button class="nav-item" onclick="goTo('avaliar-feature',this)">
-      <i class="ti ti-layout-grid"></i> Avaliar feature
-    </button>
-    <button class="nav-item" onclick="goTo('melhoria',this)">
-      <i class="ti ti-bulb"></i> Sugestão de melhoria
-    </button>
+      <div class="sb-section">Skills de IA</div>
+      <button class="nav-item" data-page="criar-task" onclick="goTo('criar-task',this)">
+        <i class="ti ti-wand"></i> Criar task com IA
+      </button>
+      <button class="nav-item" data-page="triar-suporte" onclick="goTo('triar-suporte',this)">
+        <i class="ti ti-headset"></i> Triar suporte
+      </button>
+      <button class="nav-item" data-page="avaliar-pr" onclick="goTo('avaliar-pr',this)">
+        <i class="ti ti-git-pull-request"></i> Avaliar PR
+      </button>
+      <button class="nav-item" data-page="avaliar-feature" onclick="goTo('avaliar-feature',this)">
+        <i class="ti ti-layout-grid"></i> Avaliar feature
+      </button>
+      <button class="nav-item" data-page="melhoria" onclick="goTo('melhoria',this)">
+        <i class="ti ti-bulb"></i> Sugestão de melhoria
+      </button>
 
-    <div class="sb-section">Suporte / Comercial</div>
-    <button class="nav-item" onclick="goTo('suporte-ocorrencia',this)">
-      <i class="ti ti-message-report"></i> Relatar ocorrência
-    </button>
+      <div class="sb-section">QA &amp; Produto</div>
+      <button class="nav-item" data-page="qa-skills" onclick="goTo('qa-skills',this)">
+        <i class="ti ti-shield-check"></i> QA Skills
+        <span class="nav-badge purple">Novo</span>
+      </button>
+      <button class="nav-item" data-page="feature-hub" onclick="goTo('feature-hub',this)">
+        <i class="ti ti-topology-star"></i> Feature Hub
+        <span class="nav-badge purple">Novo</span>
+      </button>
+      <button class="nav-item" data-page="reports" onclick="goTo('reports',this)">
+        <i class="ti ti-file-analytics"></i> Relatórios Sprint
+        <span class="nav-badge purple">Novo</span>
+      </button>
 
-    <div class="sb-section">ClickUp</div>
-    <button class="nav-item" onclick="goTo('clickup-sync',this)">
-      <i class="ti ti-refresh"></i> Sync e aprendizado
-      <span class="nav-badge" style="background:var(--purple-light);color:var(--purple)">IA</span>
-    </button>
+      <div class="sb-section">Suporte / Comercial</div>
+      <button class="nav-item" data-page="suporte-ocorrencia" onclick="goTo('suporte-ocorrencia',this)">
+        <i class="ti ti-message-report"></i> Relatar ocorrência
+      </button>
+      <button class="nav-item" data-page="mobile-feed" onclick="goTo('mobile-feed',this)">
+        <i class="ti ti-device-mobile"></i> Feed Mobile
+        <span class="nav-badge purple">Novo</span>
+      </button>
 
-    <div class="sb-section">Conhecimento</div>
-    <button class="nav-item" onclick="goTo('hub-duvidas',this)">
-      <i class="ti ti-help-circle"></i> Hub de dúvidas
-    </button>
-    <button class="nav-item" onclick="goTo('trilha-gamificada',this)">
-      <i class="ti ti-trophy"></i> Trilha gamificada
-      <span class="nav-badge green" style="background:var(--green-light);color:var(--green-dark)">XP</span>
-    </button>
+      <div class="sb-section">ClickUp</div>
+      <button class="nav-item" data-page="clickup-sync" onclick="goTo('clickup-sync',this)">
+        <i class="ti ti-refresh"></i> Sync e aprendizado
+        <span class="nav-badge purple">IA</span>
+      </button>
 
-    <div class="sb-divider"></div>
-    <div class="sb-section">Histórico</div>
-    <button class="nav-item" onclick="goTo('historico',this)">
-      <i class="ti ti-history"></i> Tasks geradas
-      <span class="nav-badge" id="histCount">0</span>
-    </button>
+      <div class="sb-section">Conhecimento</div>
+      <button class="nav-item" data-page="hub-duvidas" onclick="goTo('hub-duvidas',this)">
+        <i class="ti ti-help-circle"></i> Hub de dúvidas
+      </button>
+      <button class="nav-item" data-page="trilha-gamificada" onclick="goTo('trilha-gamificada',this)">
+        <i class="ti ti-trophy"></i> Trilha gamificada
+        <span class="nav-badge green">XP</span>
+      </button>
+      <button class="nav-item" data-page="home" onclick="goTo('home',this)">
+        <i class="ti ti-bolt"></i> Ferramentas rápidas
+      </button>
 
-    <button class="theme-toggle" onclick="toggleTheme()">
-      <i class="ti ti-sun" id="themeIcon"></i>
-      <span id="themeLabel">Modo claro</span>
-    </button>
-  </aside>
+      <div class="sb-divider"></div>
+      <div class="sb-section">Histórico</div>
+      <button class="nav-item" data-page="historico" onclick="goTo('historico',this)">
+        <i class="ti ti-history"></i> Tasks geradas
+        <span class="nav-badge" id="histCount">0</span>
+      </button>
 
-  <!-- MAIN -->
-  <main class="main">
-    <div class="topbar">
-      <span class="tb-title" id="pageTitle">Home</span>
-      <span class="tb-badge" id="pageBadge" style="background:var(--green-light);color:var(--green-dark);border-color:rgba(29,158,117,.3)">Bem-vinda</span>
-      <span class="tb-hint" id="topbarHint">Elixir Greenn · Protótipo v1.0</span>
-    </div>
+      <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="ti ti-sun" id="themeIcon"></i>
+        <span id="themeLabel">Modo claro</span>
+      </button>
+    </aside>
 
-    <div class="page-content">
+    <!-- MAIN -->
+    <main class="main">
+      <div class="page-content">
 
-      <!-- HOME -->
-      <div id="p-home" class="page active">
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-val" id="kpi-tasks"><span>0</span></div>
-            <div class="kpi-lbl">tasks geradas</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-val" id="kpi-pr"><span>0</span></div>
-            <div class="kpi-lbl">PRs avaliados</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-val" id="kpi-sup"><span>0</span></div>
-            <div class="kpi-lbl">tickets triados</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-val" id="kpi-feat"><span>0</span></div>
-            <div class="kpi-lbl">features avaliadas</div>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="panel-title"><i class="ti ti-bolt"></i> Ações rápidas</div>
-          <div class="quick-actions">
-            <a class="qa-card" onclick="openCriarTaskModal()">
-              <div class="qa-icon" style="background:var(--green-light)">
-                <i class="ti ti-wand" style="color:var(--green-dark)"></i>
-              </div>
-              <div><h4>Criar task com IA</h4><p>Descreva o bug e receba a task formatada</p></div>
-            </a>
-            <a class="qa-card" onclick="goTo('avaliar-pr', document.querySelectorAll('.nav-item')[4])">
-              <div class="qa-icon" style="background:var(--purple-light)">
-                <i class="ti ti-git-pull-request" style="color:var(--purple)"></i>
-              </div>
-              <div><h4>Avaliar PR</h4><p>Riscos, áreas de teste e checklist</p></div>
-            </a>
-            <a class="qa-card" onclick="goTo('triar-suporte', document.querySelectorAll('.nav-item')[3])">
-              <div class="qa-icon" style="background:var(--blue-light)">
-                <i class="ti ti-headset" style="color:var(--blue)"></i>
-              </div>
-              <div><h4>Triar suporte</h4><p>Resposta, comando ou bug real</p></div>
-            </a>
-            <a class="qa-card" onclick="goTo('avaliar-feature', document.querySelectorAll('.nav-item')[5])">
-              <div class="qa-icon" style="background:var(--amber-light)">
-                <i class="ti ti-layout-grid" style="color:var(--amber)"></i>
-              </div>
-              <div><h4>Avaliar feature</h4><p>Riscos, casos de teste e lacunas</p></div>
-            </a>
-          </div>
-        </div>
-        <div class="panel" id="home-history-panel">
-          <div class="panel-title"><i class="ti ti-history"></i> Últimas geradas</div>
-          <div id="home-history-list">
-            <div class="empty-state">
-              <i class="ti ti-wand"></i>
-              Nenhuma task gerada ainda. Comece pela ação rápida acima.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- CRIAR TASK -->
-      <div id="p-criar-task" class="page">
-        <div class="panel">
-          <div class="panel-title"><i class="ti ti-wand"></i> Descreva o problema</div>
-          <label>Tipo</label>
-          <div class="type-pills" id="taskTypePills">
-            <button class="type-pill active-bug" onclick="setTaskType('bug',this)">Bug</button>
-            <button class="type-pill" onclick="setTaskType('melhoria',this)">Melhoria</button>
-            <button class="type-pill" onclick="setTaskType('chore',this)">Chore</button>
-          </div>
-          <label style="margin-top:8px">Descrição livre</label>
-          <textarea id="taskInput" placeholder="Ex: Quando o cliente tenta fazer checkout no plano anual, o botão de confirmar fica travado após preencher o cartão. Acontece no Safari iOS 17..."></textarea>
-          <div class="btn-row">
-            <button class="btn btn-primary" onclick="gerarTask()" id="btnGerarTask">
-              <i class="ti ti-sparkles"></i> Gerar task com IA
-            </button>
-            <button class="btn" onclick="clearTaskInput()">
-              <i class="ti ti-x"></i> Limpar
-            </button>
-          </div>
-        </div>
-        <div id="taskOutput" style="display:none">
-          <div class="panel">
-            <div class="panel-title"><i class="ti ti-check"></i> Task gerada</div>
-            <div id="taskOutputInner"></div>
-            <div class="btn-row">
-              <button class="btn btn-sm" onclick="copyOutput('taskOutputInner')">
-                <i class="ti ti-copy"></i> Copiar
-              </button>
-              <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('task')">
-                <i class="ti ti-bookmark"></i> Salvar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TRIAR SUPORTE -->
-      <div id="p-triar-suporte" class="page">
-        <div class="panel">
-          <div class="panel-title"><i class="ti ti-headset"></i> Cole o ticket do suporte</div>
-          <textarea id="suporteInput" placeholder="Ex: Cliente diz que não consegue acessar o painel de afiliados. Ele fez login normalmente, mas ao clicar em Afiliados aparece tela branca. Conta no plano Pro. Já tentou limpar cache."></textarea>
-          <div class="btn-row">
-            <button class="btn btn-primary" onclick="triarSuporteIA()" id="btnTriar">
-              <i class="ti ti-brain"></i> Analisar com IA
-            </button>
-          </div>
-        </div>
-        <div id="suporteOutput" style="display:none">
-          <div class="panel">
-            <div class="panel-title"><i class="ti ti-check"></i> Resultado da triagem</div>
-            <div id="suporteOutputInner"></div>
-            <div class="btn-row">
-              <button class="btn btn-sm" onclick="copyOutput('suporteOutputInner')">
-                <i class="ti ti-copy"></i> Copiar
-              </button>
-              <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('suporte')">
-                <i class="ti ti-bookmark"></i> Salvar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- AVALIAR PR -->
-      <div id="p-avaliar-pr" class="page">
-        <div class="panel">
-          <div class="panel-title"><i class="ti ti-git-pull-request"></i> Avaliar PR / Merge Request</div>
-
-          <div class="type-pills" id="prModePills" style="margin-bottom:12px">
-            <button class="type-pill active-pr" onclick="setPRMode('link',this)"><i class="ti ti-link" style="font-size:12px"></i> Link do PR</button>
-            <button class="type-pill" onclick="setPRMode('pdf',this)"><i class="ti ti-file-type-pdf" style="font-size:12px"></i> PDF / Arquivo</button>
-            <button class="type-pill" onclick="setPRMode('texto',this)"><i class="ti ti-align-left" style="font-size:12px"></i> Texto / Diff</button>
-          </div>
-
-          <!-- MODO: LINK -->
-          <div id="pr-mode-link">
-            <label>Link do Pull Request ou Merge Request</label>
-            <input type="text" id="prLinkUrl" placeholder="Ex: https://github.com/empresa/repo/pull/142  ou  https://gitlab.com/.../merge_requests/38" style="margin-bottom:8px">
-            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:10px">
-              <i class="ti ti-info-circle" style="font-size:13px;color:var(--blue);vertical-align:-2px"></i>
-              Cole o link do PR do GitHub, GitLab ou Bitbucket. O sistema vai extrair as informações da URL e analisar o impacto nos módulos da Greenn com base no título, branch, arquivos alterados e descrição que você informar abaixo.
-            </div>
-            <label>Título do PR</label>
-            <input type="text" id="prTituloLink" placeholder="Ex: feat: simplificar formulário de endereço no checkout" style="margin-bottom:8px">
-            <label>Arquivos alterados (cole a lista do diff, um por linha)</label>
-            <textarea id="prArquivos" style="min-height:80px" placeholder="CheckoutForm.jsx&#10;addressService.js&#10;validations.js&#10;checkout.test.js"></textarea>
-            <label style="margin-top:8px">Descrição das mudanças (resumo do que foi feito)</label>
-            <textarea id="prDescLink" style="min-height:80px" placeholder="Ex: Removidos 4 campos do formulário de endereço. Adicionado autopreenchimento via ViaCEP. validateAddress() refatorada para aceitar campos parciais."></textarea>
-          </div>
-
-          <!-- MODO: PDF -->
-          <div id="pr-mode-pdf" style="display:none">
-            <label>Faça upload do PDF ou arquivo de diff</label>
-            <div id="pdfDropZone" style="border:2px dashed var(--border2);border-radius:var(--radius-md);padding:28px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:10px" onclick="document.getElementById('pdfFileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
-              <i class="ti ti-cloud-upload" style="font-size:28px;color:var(--text3);display:block;margin-bottom:8px"></i>
-              <div style="font-size:13px;color:var(--text2);font-weight:500">Clique para selecionar ou arraste o arquivo aqui</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:4px">PDF, TXT, .diff, .patch — máx 10MB</div>
-              <div id="pdfFileName" style="display:none;margin-top:10px;font-size:12px;color:var(--green);font-weight:500"></div>
-            </div>
-            <input type="file" id="pdfFileInput" accept=".pdf,.txt,.diff,.patch,text/*" style="display:none" onchange="handleFileSelect(this)">
-            <label>Título do PR (opcional)</label>
-            <input type="text" id="prTituloPDF" placeholder="Ex: fix: corrigir cálculo de split no checkout" style="margin-bottom:8px">
-            <label>Contexto adicional (opcional)</label>
-            <textarea id="prContextoPDF" style="min-height:60px" placeholder="Ex: Esse PR corrige um bug reportado em produção onde o split estava calculando errado para afiliados com múltiplos níveis."></textarea>
-          </div>
-
-          <!-- MODO: TEXTO -->
-          <div id="pr-mode-texto" style="display:none">
-            <label>Título do PR</label>
-            <input type="text" id="prTituloTexto" placeholder="Ex: refactor: migrar validações de pagamento para novo módulo" style="margin-bottom:8px">
-            <label>Cole o diff, descrição ou resumo das mudanças</label>
-            <textarea id="prInputTexto" style="min-height:140px" placeholder="Ex: Removidos 4 campos do formulário de endereço (bairro, complemento obrigatório, estado manual e país). Adicionado autopreenchimento via API ViaCEP ao digitar CEP.&#10;&#10;Arquivos alterados:&#10;- CheckoutForm.jsx: removidos campos, adicionado CEP lookup&#10;- addressService.js: novo método fetchAddressByCEP()&#10;- validations.js: validateAddress() aceita campos parciais&#10;&#10;Testes: checkout.test.js atualizado para novos cenários"></textarea>
-          </div>
-
-          <div class="btn-row" style="margin-top:12px">
-            <button class="btn btn-purple" onclick="avaliarPR()" id="btnAvaliarPR">
-              <i class="ti ti-shield-check"></i> Analisar PR com IA
-            </button>
-            <button class="btn" onclick="limparPR()">
-              <i class="ti ti-x"></i> Limpar
-            </button>
-          </div>
-        </div>
-
-        <div id="prOutput" style="display:none">
-          <div class="panel">
-            <div class="panel-title"><i class="ti ti-shield-check"></i> Avaliação do PR</div>
-            <div id="prOutputInner"></div>
-          </div>
-
-          <div class="panel" id="prReportPanel" style="display:none">
-            <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
-              <span><i class="ti ti-file-analytics"></i> Relatório gerado automaticamente</span>
-              <span style="font-size:10px;color:var(--text3)" id="prReportTs"></span>
-            </div>
-            <div id="prReportInner" style="font-size:12px;color:var(--text2);line-height:1.75;white-space:pre-wrap;font-family:var(--font-body)"></div>
-            <div class="btn-row">
-              <button class="btn btn-sm" onclick="copyOutput('prReportInner')">
-                <i class="ti ti-copy"></i> Copiar relatório
-              </button>
-              <button class="btn btn-sm" onclick="downloadReport()">
-                <i class="ti ti-download"></i> Baixar .txt
-              </button>
-              <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('pr')">
-                <i class="ti ti-bookmark"></i> Salvar no histórico
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- AVALIAR FEATURE -->
-      <div id="p-avaliar-feature" class="page">
-        <div class="panel">
-          <div class="panel-title"><i class="ti ti-layout-grid"></i> Descreva a feature para avaliar</div>
-          <label>Nome da feature</label>
-          <input type="text" id="featNome" placeholder="Ex: Checkout em 1 clique para usuários recorrentes" style="margin-bottom:10px">
-          <label>Descrição completa</label>
-          <textarea id="featInput" style="min-height:120px" placeholder="Ex: Usuários que já fizeram ao menos 1 compra na plataforma poderão ativar o checkout em 1 clique. O sistema salva o último método de pagamento e endereço. Na próxima compra, aparece um botão 'Comprar agora' que pula todas as etapas e vai direto para a confirmação. O usuário pode desativar nas configurações."></textarea>
-          <div class="btn-row">
-            <button class="btn btn-primary" onclick="avaliarFeature()" id="btnAvaliarFeat" style="background:var(--amber);border-color:var(--amber)">
-              <i class="ti ti-analyze"></i> Avaliar feature com IA
-            </button>
-          </div>
-        </div>
-        <div id="featOutput" style="display:none">
-          <div class="panel">
-            <div class="panel-title"><i class="ti ti-analyze"></i> Avaliação da feature</div>
-            <div id="featOutputInner"></div>
-            <div class="btn-row">
-              <button class="btn btn-sm" onclick="copyOutput('featOutputInner')">
-                <i class="ti ti-copy"></i> Copiar
-              </button>
-              <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('feature')">
-                <i class="ti ti-bookmark"></i> Salvar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MELHORIA -->
-      <div id="p-melhoria" class="page">
-        <div class="panel">
-          <div class="panel-title"><i class="ti ti-bulb"></i> Descreva a fricção ou oportunidade</div>
-          <textarea id="melhoriaInput" placeholder="Ex: Clientes estão desistindo no checkout na etapa de endereço. O formulário pede muitos campos e vários obrigatórios parecem desnecessários. Muito abandono ali."></textarea>
-          <div class="btn-row">
-            <button class="btn btn-purple" onclick="gerarMelhoria()" id="btnMelhoria">
-              <i class="ti ti-sparkles"></i> Gerar hipótese de melhoria
-            </button>
-          </div>
-        </div>
-        <div id="melhoriaOutput" style="display:none">
-          <div class="panel">
-            <div class="panel-title"><i class="ti ti-bulb"></i> Hipótese gerada</div>
-            <div id="melhoriaOutputInner"></div>
-            <div class="btn-row">
-              <button class="btn btn-sm" onclick="copyOutput('melhoriaOutputInner')">
-                <i class="ti ti-copy"></i> Copiar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUPORTE / COMERCIAL — RELATAR OCORRÊNCIA -->
-      <div id="p-suporte-ocorrencia" class="page">
-        <div class="panel">
-          <div class="panel-title"><i class="ti ti-message-report"></i> Relatar ocorrência de cliente</div>
-          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px">
-            <i class="ti ti-info-circle" style="font-size:13px;color:var(--blue);vertical-align:-2px"></i>
-            A IA vai avaliar o problema <strong style="color:var(--text2)">antes</strong> de abrir qualquer task — verificando se é dúvida, se pode ser resolvido por comando, se precisa de mais informações do cliente, ou se realmente é um bug importante. Só confirma a abertura se for necessário.
-          </div>
-          <label>Descrição do problema relatado pelo cliente</label>
-          <textarea id="ocorrenciaInput" style="min-height:100px" placeholder="Ex: Cliente do plano Pro ligou dizendo que tentou fazer upgrade para anual mas o botão de confirmar não responde. Ele está no celular, Safari. Já tentou reiniciar o app. Aconteceu duas vezes hoje."></textarea>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+        <!-- ══ DASHBOARD VIEW (protótipo v2 — estático) ══ -->
+        <div id="p-dashboard-view" class="page active">
+          <div class="page-hdr">
             <div>
-              <label>Canal de origem</label>
-              <div class="type-pills" id="canalPills">
-                <button class="type-pill active-sup" onclick="setCanal('suporte',this)">Suporte</button>
-                <button class="type-pill" onclick="setCanal('comercial',this)">Comercial</button>
-                <button class="type-pill" onclick="setCanal('chat',this)">Chat</button>
+              <div class="ph-title" id="dash-role-title">Dashboard — QA</div>
+              <div class="ph-sub">Visão geral do ciclo de qualidade · Sprint atual</div>
+            </div>
+            <div class="ph-actions">
+              <button class="btn btn-sm"><i class="ti ti-calendar"></i>Maio 2025</button>
+              <button class="btn btn-sm btn-primary"><i class="ti ti-refresh"></i>Atualizar</button>
+            </div>
+          </div>
+
+          <div class="grid-4" style="margin-bottom:16px">
+            <div class="kpi-card" style="--accent:var(--green)">
+              <div class="kpi-val"><em>87</em>%</div>
+              <div class="kpi-lbl">Aprovação sem edição</div>
+              <div class="kpi-delta delta-up"><i class="ti ti-trending-up" style="font-size:12px"></i>+5pp vs sprint anterior</div>
+            </div>
+            <div class="kpi-card" style="--accent:var(--blue)">
+              <div class="kpi-val">2<em>.3</em>d</div>
+              <div class="kpi-lbl">Tempo médio de resolução</div>
+              <div class="kpi-delta delta-down"><i class="ti ti-trending-down" style="font-size:12px"></i>+0.4d vs anterior</div>
+            </div>
+            <div class="kpi-card" style="--accent:var(--red)">
+              <div class="kpi-val"><em>31</em></div>
+              <div class="kpi-lbl">Bugs abertos — Checkout</div>
+              <div class="kpi-delta delta-down"><i class="ti ti-alert-triangle" style="font-size:12px"></i>40% acima da média</div>
+            </div>
+            <div class="kpi-card" style="--accent:var(--purple)">
+              <div class="kpi-val"><em>78</em>/100</div>
+              <div class="kpi-lbl">Score de qualidade</div>
+              <div class="kpi-delta delta-up"><i class="ti ti-trending-up" style="font-size:12px"></i>+6 vs último sprint</div>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom:16px">
+            <div class="card">
+              <div class="card-title"><i class="ti ti-chart-bar"></i>Bugs por módulo — 30 dias</div>
+              <div class="bar-chart">
+                <div class="bc-row"><span class="bc-label">Checkout</span><div class="bc-track"><div class="bc-fill" style="width:78%;background:var(--red)"></div></div><span class="bc-val">31</span></div>
+                <div class="bc-row"><span class="bc-label">Afiliados</span><div class="bc-track"><div class="bc-fill" style="width:55%;background:var(--amber)"></div></div><span class="bc-val">22</span></div>
+                <div class="bc-row"><span class="bc-label">Área membros</span><div class="bc-track"><div class="bc-fill" style="width:40%;background:var(--amber)"></div></div><span class="bc-val">16</span></div>
+                <div class="bc-row"><span class="bc-label">Campanhas</span><div class="bc-track"><div class="bc-fill" style="width:25%;background:var(--green)"></div></div><span class="bc-val">10</span></div>
+                <div class="bc-row"><span class="bc-label">PaymentOps</span><div class="bc-track"><div class="bc-fill" style="width:18%;background:var(--green)"></div></div><span class="bc-val">7</span></div>
               </div>
             </div>
-            <div>
-              <label>Tem evidência visual?</label>
-              <div class="type-pills" id="evidenciaPills">
-                <button class="type-pill active-sup" onclick="setEvidencia('sim',this)">Sim — anexei</button>
-                <button class="type-pill" onclick="setEvidencia('nao',this)">Não tenho</button>
-              </div>
+            <div class="card">
+              <div class="card-title"><i class="ti ti-bell"></i>Alertas automáticos</div>
+              <div class="risk-item risk-high" style="margin-bottom:6px"><span class="risk-dot" style="background:var(--red)"></span><span style="flex:1;font-size:12.5px;color:var(--text2)">Checkout com 31 bugs — 40% acima da média histórica. Possível regressão.</span><span class="tag tag-bug">crítico</span></div>
+              <div class="risk-item risk-med" style="margin-bottom:6px"><span class="risk-dot" style="background:var(--amber)"></span><span style="flex:1;font-size:12.5px;color:var(--text2)">KB Área de membros desatualizada há 47 dias — qualidade de triagem comprometida.</span><span class="tag tag-neu">atenção</span></div>
+              <div class="risk-item risk-low"><span class="risk-dot" style="background:var(--green)"></span><span style="flex:1;font-size:12.5px;color:var(--text2)">Bugs recorrentes caíram 8pp este sprint — KB Checkout melhorou.</span><span class="tag tag-sup">positivo</span></div>
             </div>
           </div>
 
-          <label style="margin-top:10px">Link de vídeo ou imagem (opcional)</label>
-          <input type="text" id="ocorrenciaLink" placeholder="https://drive.google.com/... ou https://loom.com/..." style="margin-bottom:4px">
-
-          <div class="btn-row" style="margin-top:10px">
-            <button class="btn btn-primary" onclick="avaliarOcorrencia()" id="btnOcorrencia">
-              <i class="ti ti-brain"></i> Avaliar com IA
-            </button>
-            <button class="btn" onclick="limparOcorrencia()"><i class="ti ti-x"></i> Limpar</button>
-          </div>
-        </div>
-
-        <div id="ocorrenciaOutput" style="display:none">
-          <div class="panel">
-            <div class="panel-title"><i class="ti ti-analyze"></i> Análise da ocorrência</div>
-            <div id="ocorrenciaOutputInner"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- CLICKUP SYNC E APRENDIZADO -->
-      <div id="p-clickup-sync" class="page">
-        <div class="panel">
-          <div class="panel-title"><i class="ti ti-refresh"></i> Sincronização com ClickUp — aprendizado da IA</div>
-          <div style="background:rgba(83,74,183,0.08);border:1px solid rgba(83,74,183,0.2);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px">
-            <div style="font-size:12px;color:var(--purple);font-weight:500;margin-bottom:5px"><i class="ti ti-brain" style="vertical-align:-2px"></i> Como funciona</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.65">
-              O Elixir vai ler todas as tasks existentes no ClickUp e fazer um estudo profundo de padrões: quais módulos têm mais bugs, qual linguagem de título foi aprovada, bugs recorrentes e tempo de resolução. Esses dados enriquecem a KB e tornam a IA mais precisa para o contexto real da Greenn.
-            </div>
-          </div>
-
-          <label>Workspace ID ou URL do ClickUp</label>
-          <input type="text" id="clickupWorkspace" placeholder="Ex: https://app.clickup.com/12345678 ou ID: 12345678" style="margin-bottom:10px">
-
-          <label>Cole tasks de exemplo para análise (JSON, CSV ou texto livre)</label>
-          <textarea id="clickupTasksInput" style="min-height:130px" placeholder='Cole aqui tasks reais do ClickUp para a IA analisar e aprender. Pode ser em qualquer formato:
-
-Exemplo:
-[BUG] Checkout travando no Safari iOS - Resolvido em 2 dias - Checkout
-[BUG] Afiliados: comissão calculando errado - Resolvido em 5 dias - Afiliados
-[MELHORIA] Adicionar autopreenchimento de CEP - Entregue - Checkout
-[BUG] Pix não processando em fins de semana - Crítico - PaymentOps
-...
-
-Quanto mais tasks, mais rico o aprendizado da IA.'></textarea>
-
-          <div class="btn-row">
-            <button class="btn btn-purple" onclick="sincronizarClickUp()" id="btnSync">
-              <i class="ti ti-brain"></i> Analisar e enriquecer KB
-            </button>
-            <button class="btn" onclick="document.getElementById('clickupTasksInput').value='';document.getElementById('clickupSyncOutput').style.display='none'">
-              <i class="ti ti-x"></i> Limpar
-            </button>
-          </div>
-        </div>
-
-        <div id="clickupSyncOutput" style="display:none">
-          <div class="panel">
-            <div class="panel-title"><i class="ti ti-chart-bar"></i> Estudo de padrões — resultado</div>
-            <div id="clickupSyncInner"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- HUB DE DÚVIDAS -->
-      <div id="p-hub-duvidas" class="page">
-        <div class="panel">
-          <div class="panel-title"><i class="ti ti-help-circle"></i> Hub de dúvidas — pergunte qualquer coisa sobre a Greenn</div>
-          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px">
-            <i class="ti ti-sparkles" style="color:var(--green);font-size:13px;vertical-align:-2px"></i>
-            A IA responde com contexto real da Greenn — módulos, regras de negócio, fluxos e comandos técnicos. Cada resposta útil é salva na KB para enriquecer o conhecimento do time.
-          </div>
-
-          <label>Seu perfil</label>
-          <div class="type-pills" id="perfilPills" style="margin-bottom:10px">
-            <button class="type-pill active-sup" onclick="setPerfil('dev',this)">Dev</button>
-            <button class="type-pill" onclick="setPerfil('suporte',this)">Suporte</button>
-            <button class="type-pill" onclick="setPerfil('qa',this)">QA</button>
-            <button class="type-pill" onclick="setPerfil('novato',this)">Novato</button>
-            <button class="type-pill" onclick="setPerfil('comercial',this)">Comercial</button>
-          </div>
-
-          <label>Sua dúvida</label>
-          <textarea id="duvidaInput" style="min-height:90px" placeholder="Ex: Qual comando uso para reprocessar um webhook de Pix que falhou?&#10;&#10;Ou: Qual a regra de negócio para split de pagamento com afiliados?&#10;&#10;Ou: Quais os passos que o QA faz no ciclo de uma feature?"></textarea>
-
-          <div id="duvida-exemplos" style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
-            <div style="font-size:10px;color:var(--text3);margin-bottom:2px">Exemplos rápidos — clique para usar:</div>
-            <div style="display:flex;gap:5px;flex-wrap:wrap" id="exemplos-chips"></div>
-          </div>
-
-          <div class="btn-row" style="margin-top:10px">
-            <button class="btn btn-primary" onclick="responderDuvida()" id="btnDuvida">
-              <i class="ti ti-search"></i> Buscar resposta
-            </button>
-            <button class="btn" onclick="document.getElementById('duvidaInput').value='';document.getElementById('duvidaOutput').style.display='none'">
-              <i class="ti ti-x"></i> Limpar
-            </button>
-          </div>
-        </div>
-
-        <div id="duvidaOutput" style="display:none">
-          <div class="panel">
-            <div class="panel-title"><i class="ti ti-bulb"></i> Resposta</div>
-            <div id="duvidaOutputInner"></div>
-          </div>
-        </div>
-
-        <div class="panel" id="kbSavedPanel" style="display:none">
-          <div class="panel-title"><i class="ti ti-database"></i> Salvo na Knowledge Base</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.6" id="kbSavedText"></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:6px"><i class="ti ti-users" style="vertical-align:-2px"></i> Esta resposta agora está disponível para todos do time que fizerem a mesma pergunta.</div>
-        </div>
-      </div>
-
-      <!-- TRILHA GAMIFICADA -->
-      <div id="p-trilha-gamificada" class="page">
-
-        <div class="kpi-grid" style="margin-bottom:12px">
-          <div class="kpi-card">
-            <div class="kpi-val" id="xp-total"><span>340</span></div>
-            <div class="kpi-lbl">XP total acumulado</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-val" id="nivel-atual"><span>2</span></div>
-            <div class="kpi-lbl">nível atual</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-val" id="missoes-ok"><span>3</span></div>
-            <div class="kpi-lbl">missões concluídas</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-val" id="missoes-pend"><span>1</span></div>
-            <div class="kpi-lbl">missões pendentes</div>
-          </div>
-        </div>
-
-        <div class="panel" style="margin-bottom:10px">
-          <div class="panel-title"><i class="ti ti-stairs"></i> Sua progressão</div>
-          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:8px" id="nivel-grid"></div>
-          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:5px">
-            <div id="xp-bar" style="height:100%;background:var(--green);border-radius:3px;width:68%;transition:width .5s"></div>
-          </div>
-          <div style="font-size:11px;color:var(--text3)">340 / 500 XP para nível 3 — Especialista</div>
-        </div>
-
-        <div class="two-col" style="margin-bottom:10px">
-
-          <div class="panel">
-            <div class="panel-title"><i class="ti ti-book-upload"></i> Missão ativa — entregar resumo</div>
-            <div style="background:var(--purple-light);border:1px solid rgba(83,74,183,.3);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px">
-              <div style="font-size:12px;font-weight:500;color:var(--purple);margin-bottom:3px">📚 Missão atribuída pelo gestor</div>
-              <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px" id="missao-titulo">Accelerate — DevOps e alta performance</div>
-              <div style="font-size:11px;color:var(--text3)" id="missao-prazo">Prazo: 30/05/2025 · Valor: 150 XP</div>
-            </div>
-            <label>Seu resumo da leitura</label>
-            <textarea id="resumoInput" style="min-height:120px" placeholder="Escreva aqui seu resumo do conteúdo lido. Explique os principais pontos, o que você aprendeu e como isso se aplica ao seu trabalho na Greenn..."></textarea>
-            <div style="font-size:11px;color:var(--text3);margin-top:5px;margin-bottom:8px"><i class="ti ti-info-circle" style="vertical-align:-2px"></i> A IA vai avaliar: profundidade de compreensão, pontos-chave captados e conexão com o trabalho real.</div>
-            <button class="btn btn-primary" style="width:100%" onclick="avaliarResumo()" id="btnResumo">
-              <i class="ti ti-send"></i> Entregar resumo para avaliação
-            </button>
-          </div>
-
-          <div class="panel">
-            <div class="panel-title"><i class="ti ti-user-star"></i> Painel do gestor — missões</div>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <div>
-                <label>Atribuir nova missão de leitura</label>
-                <input type="text" id="missaoTitulo" placeholder="Título do livro, artigo ou doc" style="margin-bottom:6px">
-                <textarea id="missaoDesc" style="min-height:50px" placeholder="Descrição e objetivo da leitura..."></textarea>
-                <div style="display:flex;gap:6px;margin-top:6px">
-                  <input type="text" id="missaoXP" placeholder="XP (ex: 150)" style="width:80px">
-                  <input type="text" id="missaoPrazo" placeholder="Prazo (ex: 30/05)" style="flex:1">
-                  <button class="btn btn-sm btn-primary" onclick="criarMissao()"><i class="ti ti-plus"></i> Criar</button>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><i class="ti ti-topology-star"></i>Features em andamento</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                  <span class="status s-done">Entregue</span>
+                  <span style="font-size:12.5px;color:var(--text);flex:1">Novo onboarding para produtores</span>
+                  <span style="font-size:11px;color:var(--text3)">Experience</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                  <span class="status s-doing">Em dev</span>
+                  <span style="font-size:12.5px;color:var(--text);flex:1">Simplificar formulário de endereço</span>
+                  <span style="font-size:11px;color:var(--text3)">Experience</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                  <span class="status s-disc">Discussão</span>
+                  <span style="font-size:12.5px;color:var(--text);flex:1">Antifraude ML para Pix</span>
+                  <span style="font-size:11px;color:var(--text3)">PaymentOps</span>
                 </div>
               </div>
-              <div style="border-top:.5px solid var(--border);padding-top:8px">
-                <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Missões ativas do time</div>
-                <div id="missoes-lista" style="display:flex;flex-direction:column;gap:5px"></div>
+            </div>
+            <div class="card">
+              <div class="card-title"><i class="ti ti-activity"></i>Atividade recente</div>
+              <div class="feed-item"><span class="fi-dot2" style="background:var(--green)"></span><div class="fi-body2"><div class="fi-time">Hoje 14:32</div><div class="fi-text">Task aprovada pelo PO: [BUG] Safari iOS 17</div><div class="fi-sub">Enviada ao ClickUp · RICE score 312</div></div></div>
+              <div class="feed-item"><span class="fi-dot2" style="background:var(--purple)"></span><div class="fi-body2"><div class="fi-time">Hoje 11:20</div><div class="fi-text">PR avaliado: feat/simplificar-checkout</div><div class="fi-sub">Risco Médio · 3 módulos impactados</div></div></div>
+              <div class="feed-item"><span class="fi-dot2" style="background:var(--red)"></span><div class="fi-body2"><div class="fi-time">Ontem 16:45</div><div class="fi-text">Alerta: Checkout com 40% acima da média</div><div class="fi-sub">3 novos bugs em 24h · Checkout</div></div></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:16px">
+            <div class="card-title"><i class="ti ti-bolt"></i>Ações rápidas</div>
+            <div class="quick-actions">
+              <a class="qa-card" onclick="openCriarTaskModal()">
+                <div class="qa-icon" style="background:var(--green-light)"><i class="ti ti-wand" style="color:var(--green-dark)"></i></div>
+                <div><h4>Criar task com IA</h4><p>Descreva o bug e receba a task formatada</p></div>
+              </a>
+              <a class="qa-card" onclick="goTo('avaliar-pr', document.querySelector('[data-page=avaliar-pr]'))">
+                <div class="qa-icon" style="background:var(--purple-light)"><i class="ti ti-git-pull-request" style="color:var(--purple)"></i></div>
+                <div><h4>Avaliar PR</h4><p>Riscos, áreas de teste e checklist</p></div>
+              </a>
+              <a class="qa-card" onclick="goTo('triar-suporte', document.querySelector('[data-page=triar-suporte]'))">
+                <div class="qa-icon" style="background:var(--blue-light)"><i class="ti ti-headset" style="color:var(--blue)"></i></div>
+                <div><h4>Triar suporte</h4><p>Resposta, comando ou bug real</p></div>
+              </a>
+              <a class="qa-card" onclick="goTo('suporte-ocorrencia', document.querySelector('[data-page=suporte-ocorrencia]'))">
+                <div class="qa-icon" style="background:var(--amber-light)"><i class="ti ti-message-report" style="color:var(--amber)"></i></div>
+                <div><h4>Relatar ocorrência</h4><p>Avalie se é dúvida, comando ou bug</p></div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ HOME — Ferramentas rápidas ══ -->
+        <div id="p-home" class="page">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-val" id="kpi-tasks"><span>0</span></div>
+              <div class="kpi-lbl">tasks geradas</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-val" id="kpi-pr"><span>0</span></div>
+              <div class="kpi-lbl">PRs avaliados</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-val" id="kpi-sup"><span>0</span></div>
+              <div class="kpi-lbl">tickets triados</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-val" id="kpi-feat"><span>0</span></div>
+              <div class="kpi-lbl">features avaliadas</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-bolt"></i> Ações rápidas</div>
+            <div class="quick-actions">
+              <a class="qa-card" onclick="openCriarTaskModal()">
+                <div class="qa-icon" style="background:var(--green-light)"><i class="ti ti-wand" style="color:var(--green-dark)"></i></div>
+                <div><h4>Criar task com IA</h4><p>Descreva o bug e receba a task formatada</p></div>
+              </a>
+              <a class="qa-card" onclick="goTo('avaliar-pr', document.querySelector('[data-page=avaliar-pr]'))">
+                <div class="qa-icon" style="background:var(--purple-light)"><i class="ti ti-git-pull-request" style="color:var(--purple)"></i></div>
+                <div><h4>Avaliar PR</h4><p>Riscos, áreas de teste e checklist</p></div>
+              </a>
+              <a class="qa-card" onclick="goTo('triar-suporte', document.querySelector('[data-page=triar-suporte]'))">
+                <div class="qa-icon" style="background:var(--blue-light)"><i class="ti ti-headset" style="color:var(--blue)"></i></div>
+                <div><h4>Triar suporte</h4><p>Resposta, comando ou bug real</p></div>
+              </a>
+              <a class="qa-card" onclick="goTo('avaliar-feature', document.querySelector('[data-page=avaliar-feature]'))">
+                <div class="qa-icon" style="background:var(--amber-light)"><i class="ti ti-layout-grid" style="color:var(--amber)"></i></div>
+                <div><h4>Avaliar feature</h4><p>Riscos, casos de teste e lacunas</p></div>
+              </a>
+            </div>
+          </div>
+          <div class="panel" id="home-history-panel">
+            <div class="panel-title"><i class="ti ti-history"></i> Últimas geradas</div>
+            <div id="home-history-list">
+              <div class="empty-state"><i class="ti ti-wand"></i>Nenhuma task gerada ainda. Comece pela ação rápida acima.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ CRIAR TASK ══ -->
+        <div id="p-criar-task" class="page">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-wand"></i> Descreva o problema</div>
+            <label>Tipo</label>
+            <div class="type-pills" id="taskTypePills">
+              <button class="type-pill active-bug" onclick="setTaskType('bug',this)">Bug</button>
+              <button class="type-pill" onclick="setTaskType('melhoria',this)">Melhoria</button>
+              <button class="type-pill" onclick="setTaskType('chore',this)">Chore</button>
+            </div>
+            <label style="margin-top:8px">Descrição livre</label>
+            <textarea id="taskInput" placeholder="Ex: Quando o cliente tenta fazer checkout no plano anual, o botão de confirmar fica travado após preencher o cartão. Acontece no Safari iOS 17..."></textarea>
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="gerarTask()" id="btnGerarTask"><i class="ti ti-sparkles"></i> Gerar task com IA</button>
+              <button class="btn" onclick="clearTaskInput()"><i class="ti ti-x"></i> Limpar</button>
+            </div>
+          </div>
+          <div id="taskOutput" style="display:none">
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-check"></i> Task gerada</div>
+              <div id="taskOutputInner"></div>
+              <div class="btn-row">
+                <button class="btn btn-sm" onclick="copyOutput('taskOutputInner')"><i class="ti ti-copy"></i> Copiar</button>
+                <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('task')"><i class="ti ti-bookmark"></i> Salvar</button>
               </div>
             </div>
           </div>
         </div>
 
-        <div id="avaliacaoOutput" style="display:none">
+        <!-- ══ TRIAR SUPORTE ══ -->
+        <div id="p-triar-suporte" class="page">
           <div class="panel">
-            <div class="panel-title"><i class="ti ti-certificate"></i> Avaliação da IA — resumo entregue</div>
-            <div id="avaliacaoInner"></div>
+            <div class="panel-title"><i class="ti ti-headset"></i> Cole o ticket do suporte</div>
+            <textarea id="suporteInput" placeholder="Ex: Cliente diz que não consegue acessar o painel de afiliados. Ele fez login normalmente, mas ao clicar em Afiliados aparece tela branca. Conta no plano Pro. Já tentou limpar cache."></textarea>
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="triarSuporteIA()" id="btnTriar"><i class="ti ti-brain"></i> Analisar com IA</button>
+            </div>
           </div>
-        </div>
-
-      </div>
-
-      <!-- HISTÓRICO -->
-      <div id="p-historico" class="page">
-        <div class="panel">
-          <div class="panel-title"><i class="ti ti-history"></i> Todas as tasks geradas</div>
-          <div id="historicoList">
-            <div class="empty-state">
-              <i class="ti ti-history"></i>
-              Nenhuma task salva ainda.
+          <div id="suporteOutput" style="display:none">
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-check"></i> Resultado da triagem</div>
+              <div id="suporteOutputInner"></div>
+              <div class="btn-row">
+                <button class="btn btn-sm" onclick="copyOutput('suporteOutputInner')"><i class="ti ti-copy"></i> Copiar</button>
+                <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('suporte')"><i class="ti ti-bookmark"></i> Salvar</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-    </div>
-  </main>
-</div>
+        <!-- ══ AVALIAR PR ══ -->
+        <div id="p-avaliar-pr" class="page">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-git-pull-request"></i> Avaliar PR / Merge Request</div>
+            <div class="type-pills" id="prModePills" style="margin-bottom:12px">
+              <button class="type-pill active-pr" onclick="setPRMode('link',this)"><i class="ti ti-link" style="font-size:12px"></i> Link do PR</button>
+              <button class="type-pill" onclick="setPRMode('pdf',this)"><i class="ti ti-file-type-pdf" style="font-size:12px"></i> PDF / Arquivo</button>
+              <button class="type-pill" onclick="setPRMode('texto',this)"><i class="ti ti-align-left" style="font-size:12px"></i> Texto / Diff</button>
+            </div>
+            <div id="pr-mode-link">
+              <label>Link do Pull Request ou Merge Request</label>
+              <input type="text" id="prLinkUrl" placeholder="Ex: https://github.com/empresa/repo/pull/142" style="margin-bottom:8px">
+              <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:10px">
+                <i class="ti ti-info-circle" style="font-size:13px;color:var(--blue);vertical-align:-2px"></i> Cole o link do PR do GitHub, GitLab ou Bitbucket. O sistema vai extrair as informações da URL e analisar o impacto nos módulos da Greenn.
+              </div>
+              <label>Título do PR</label>
+              <input type="text" id="prTituloLink" placeholder="Ex: feat: simplificar formulário de endereço no checkout" style="margin-bottom:8px">
+              <label>Arquivos alterados (um por linha)</label>
+              <textarea id="prArquivos" style="min-height:80px" placeholder="CheckoutForm.jsx&#10;addressService.js&#10;validations.js"></textarea>
+              <label style="margin-top:8px">Descrição das mudanças</label>
+              <textarea id="prDescLink" style="min-height:80px" placeholder="Ex: Removidos 4 campos do formulário. Adicionado autopreenchimento via ViaCEP."></textarea>
+            </div>
+            <div id="pr-mode-pdf" style="display:none">
+              <label>Faça upload do PDF ou arquivo de diff</label>
+              <div id="pdfDropZone" style="border:2px dashed var(--border2);border-radius:var(--radius-md);padding:28px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:10px" onclick="document.getElementById('pdfFileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+                <i class="ti ti-cloud-upload" style="font-size:28px;color:var(--text3);display:block;margin-bottom:8px"></i>
+                <div style="font-size:13px;color:var(--text2);font-weight:500">Clique para selecionar ou arraste o arquivo aqui</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:4px">PDF, TXT, .diff, .patch — máx 10MB</div>
+                <div id="pdfFileName" style="display:none;margin-top:10px;font-size:12px;color:var(--green);font-weight:500"></div>
+              </div>
+              <input type="file" id="pdfFileInput" accept=".pdf,.txt,.diff,.patch,text/*" style="display:none" onchange="handleFileSelect(this)">
+              <label>Título do PR (opcional)</label>
+              <input type="text" id="prTituloPDF" placeholder="Ex: fix: corrigir cálculo de split no checkout" style="margin-bottom:8px">
+              <label>Contexto adicional (opcional)</label>
+              <textarea id="prContextoPDF" style="min-height:60px" placeholder="Ex: PR corrige bug reportado em produção."></textarea>
+            </div>
+            <div id="pr-mode-texto" style="display:none">
+              <label>Título do PR</label>
+              <input type="text" id="prTituloTexto" placeholder="Ex: refactor: migrar validações de pagamento" style="margin-bottom:8px">
+              <label>Cole o diff, descrição ou resumo das mudanças</label>
+              <textarea id="prInputTexto" style="min-height:140px" placeholder="Descreva as mudanças, arquivos alterados e contexto..."></textarea>
+            </div>
+            <div class="btn-row" style="margin-top:12px">
+              <button class="btn btn-purple" onclick="avaliarPR()" id="btnAvaliarPR"><i class="ti ti-shield-check"></i> Analisar PR com IA</button>
+              <button class="btn" onclick="limparPR()"><i class="ti ti-x"></i> Limpar</button>
+            </div>
+          </div>
+          <div id="prOutput" style="display:none">
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-shield-check"></i> Avaliação do PR</div>
+              <div id="prOutputInner"></div>
+            </div>
+            <div class="panel" id="prReportPanel" style="display:none">
+              <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between">
+                <span><i class="ti ti-file-analytics"></i> Relatório gerado automaticamente</span>
+                <span style="font-size:10px;color:var(--text3)" id="prReportTs"></span>
+              </div>
+              <div id="prReportInner" style="font-size:12px;color:var(--text2);line-height:1.75;white-space:pre-wrap;font-family:var(--font-body)"></div>
+              <div class="btn-row">
+                <button class="btn btn-sm" onclick="copyOutput('prReportInner')"><i class="ti ti-copy"></i> Copiar relatório</button>
+                <button class="btn btn-sm" onclick="downloadReport()"><i class="ti ti-download"></i> Baixar .txt</button>
+                <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('pr')"><i class="ti ti-bookmark"></i> Salvar no histórico</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-<!-- Env vars do Vite (.env) — carrega antes de qualquer uso -->
+        <!-- ══ AVALIAR FEATURE ══ -->
+        <div id="p-avaliar-feature" class="page">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-layout-grid"></i> Descreva a feature para avaliar</div>
+            <label>Nome da feature</label>
+            <input type="text" id="featNome" placeholder="Ex: Checkout em 1 clique para usuários recorrentes" style="margin-bottom:10px">
+            <label>Descrição completa</label>
+            <textarea id="featInput" style="min-height:120px" placeholder="Ex: Usuários que já fizeram ao menos 1 compra poderão ativar o checkout em 1 clique..."></textarea>
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="avaliarFeature()" id="btnAvaliarFeat" style="background:var(--amber);border-color:var(--amber)"><i class="ti ti-analyze"></i> Avaliar feature com IA</button>
+            </div>
+          </div>
+          <div id="featOutput" style="display:none">
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-analyze"></i> Avaliação da feature</div>
+              <div id="featOutputInner"></div>
+              <div class="btn-row">
+                <button class="btn btn-sm" onclick="copyOutput('featOutputInner')"><i class="ti ti-copy"></i> Copiar</button>
+                <button class="btn btn-sm btn-primary" onclick="salvarNoHistorico('feature')"><i class="ti ti-bookmark"></i> Salvar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ MELHORIA ══ -->
+        <div id="p-melhoria" class="page">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-bulb"></i> Descreva a fricção ou oportunidade</div>
+            <textarea id="melhoriaInput" placeholder="Ex: Clientes estão desistindo no checkout na etapa de endereço. O formulário pede muitos campos e vários obrigatórios parecem desnecessários."></textarea>
+            <div class="btn-row">
+              <button class="btn btn-purple" onclick="gerarMelhoria()" id="btnMelhoria"><i class="ti ti-sparkles"></i> Gerar hipótese de melhoria</button>
+            </div>
+          </div>
+          <div id="melhoriaOutput" style="display:none">
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-bulb"></i> Hipótese gerada</div>
+              <div id="melhoriaOutputInner"></div>
+              <div class="btn-row">
+                <button class="btn btn-sm" onclick="copyOutput('melhoriaOutputInner')"><i class="ti ti-copy"></i> Copiar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ QA SKILLS (protótipo — estático) ══ -->
+        <div id="p-qa-skills" class="page">
+          <div class="page-hdr">
+            <div>
+              <div class="ph-title">QA Skills — Avaliação de PR</div>
+              <div class="ph-sub">Análise de impacto, riscos e checklist de merge</div>
+            </div>
+            <div class="ph-actions">
+              <button class="btn btn-sm btn-primary" onclick="goTo('avaliar-pr', document.querySelector('[data-page=avaliar-pr]'))"><i class="ti ti-git-pull-request"></i>Avaliar PR real</button>
+            </div>
+          </div>
+          <div class="tabs">
+            <div class="tab-btn active" onclick="qaTab(this,'qa-pr-tab')">Avaliação de PR</div>
+            <div class="tab-btn" onclick="qaTab(this,'qa-feat-tab')">Avaliação de Feature</div>
+            <div class="tab-btn" onclick="qaTab(this,'qa-impact-tab')">Análise de Impacto</div>
+          </div>
+          <div id="qa-pr-tab">
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-title"><i class="ti ti-git-pull-request"></i>PR: feat/simplificar-checkout</div>
+                <div style="font-size:12px;color:var(--text3);margin-bottom:12px;padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);font-family:var(--font-mono);line-height:1.6">github.com/greenn/checkout/pull/142<br><span style="color:var(--gl)">+187 / -43 linhas · 4 arquivos</span></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:rgba(186,117,23,.07);border:1px solid rgba(186,117,23,.2);border-radius:var(--radius-sm);margin-bottom:12px">
+                  <span style="font-size:20px">⚠️</span>
+                  <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--al)">Aprovado com ressalvas</div><div style="font-size:11.5px;color:var(--text3);margin-top:2px">Risco médio · 3 módulos impactados</div></div>
+                  <span class="tag tag-neu">Risco Médio</span>
+                </div>
+                <div class="card-title" style="margin-bottom:8px"><i class="ti ti-alert-triangle" style="color:var(--amber)"></i>Riscos identificados</div>
+                <div class="risk-item risk-med" style="margin-bottom:5px"><span class="risk-dot" style="background:var(--amber)"></span><span style="font-size:12.5px;color:var(--text2)">[Checkout] CEP rural sem cobertura ViaCEP pode travar o checkout em fallback</span></div>
+                <div class="risk-item risk-low" style="margin-bottom:5px"><span class="risk-dot" style="background:var(--green)"></span><span style="font-size:12.5px;color:var(--text2)">[Afiliados] Links com UTM de endereço podem precisar atualização</span></div>
+                <div class="risk-item risk-low"><span class="risk-dot" style="background:var(--green)"></span><span style="font-size:12.5px;color:var(--text2)">[Validações] validateAddress() aceita campos parciais — testar integrações</span></div>
+              </div>
+              <div>
+                <div class="card" style="margin-bottom:12px">
+                  <div class="card-title"><i class="ti ti-list-check"></i>Checklist de merge</div>
+                  <div class="check-item"><div class="check-box2 done" onclick="toggleCheck(this)"></div><span class="check-text striked">CEP válido preenche automaticamente (CT-001)</span></div>
+                  <div class="check-item"><div class="check-box2 done" onclick="toggleCheck(this)"></div><span class="check-text striked">CEP inválido exibe fallback manual (CT-002)</span></div>
+                  <div class="check-item"><div class="check-box2" onclick="toggleCheck(this)"></div><span class="check-text">Checkout completo no Safari iOS 17 (CT-003)</span></div>
+                  <div class="check-item"><div class="check-box2" onclick="toggleCheck(this)"></div><span class="check-text">Endereço rural sem cobertura ViaCEP (CT-004)</span></div>
+                  <div class="check-item"><div class="check-box2" onclick="toggleCheck(this)"></div><span class="check-text">Code review aprovado pelo Tech Lead</span></div>
+                  <div style="margin-top:10px">
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Progresso</span><span>2 de 5</span></div>
+                    <div class="prog-bar"><div class="prog-fill" style="width:40%;background:var(--green)"></div></div>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-title"><i class="ti ti-bug" style="color:var(--red)"></i>Bugs possíveis</div>
+                  <div style="font-size:12.5px;color:var(--text2);padding:7px 10px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:6px;border:1px solid rgba(226,75,74,.12)">• Endereços rurais sem cobertura ViaCEP travam o checkout</div>
+                  <div style="font-size:12.5px;color:var(--text2);padding:7px 10px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid rgba(186,117,23,.12)">• Campo complemento vazio quebrando validação no plano anual</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="qa-feat-tab" style="display:none">
+            <div class="card">
+              <div class="card-title"><i class="ti ti-analyze"></i>Avaliação: Simplificar formulário de endereço</div>
+              <div class="grid-2">
+                <div>
+                  <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-family:var(--font-mono);letter-spacing:.08em;text-transform:uppercase">Complexidade &amp; Riscos</div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(186,117,23,.07);border:1px solid rgba(186,117,23,.2);border-radius:var(--radius-sm);margin-bottom:8px">
+                    <span style="font-size:22px;font-family:var(--font-display);font-weight:700;color:var(--al)">Médio</span>
+                    <span style="font-size:12px;color:var(--text2)">Complexidade de produto</span>
+                  </div>
+                  <div class="risk-item risk-med" style="margin-bottom:5px"><span class="risk-dot" style="background:var(--amber)"></span><span style="font-size:12.5px;color:var(--text2)">Autopreenchimento falha para CEPs rurais — precisa fallback</span></div>
+                  <div class="risk-item risk-low"><span class="risk-dot" style="background:var(--green)"></span><span style="font-size:12.5px;color:var(--text2)">Impacto indireto em Afiliados via links de endereço</span></div>
+                </div>
+                <div>
+                  <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-family:var(--font-mono);letter-spacing:.08em;text-transform:uppercase">Casos de teste prioritários</div>
+                  <div class="check-item"><div class="check-box2" onclick="toggleCheck(this)"></div><span class="check-text">CEP válido — preenchimento automático em &lt;1s</span></div>
+                  <div class="check-item"><div class="check-box2" onclick="toggleCheck(this)"></div><span class="check-text">CEP inválido — fallback manual com mensagem</span></div>
+                  <div class="check-item"><div class="check-box2" onclick="toggleCheck(this)"></div><span class="check-text">Safari iOS 17 — checkout end-to-end</span></div>
+                  <div class="check-item"><div class="check-box2" onclick="toggleCheck(this)"></div><span class="check-text">Zona rural — CEP sem cobertura ViaCEP</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="qa-impact-tab" style="display:none">
+            <div class="card">
+              <div class="card-title"><i class="ti ti-git-merge"></i>Análise de impacto entre módulos</div>
+              <div class="grid-3">
+                <div style="padding:14px;background:rgba(226,75,74,.06);border:1px solid rgba(226,75,74,.2);border-radius:var(--radius-md)">
+                  <span class="tag tag-bug" style="margin-bottom:8px;display:inline-block">Direto</span>
+                  <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Checkout</div>
+                  <div style="font-size:12px;color:var(--text3)">validateAddress() refatorada. Campos reduzidos de 8 para 4.</div>
+                </div>
+                <div style="padding:14px;background:rgba(186,117,23,.06);border:1px solid rgba(186,117,23,.2);border-radius:var(--radius-md)">
+                  <span class="tag tag-neu" style="margin-bottom:8px;display:inline-block">Indireto</span>
+                  <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Afiliados</div>
+                  <div style="font-size:12px;color:var(--text3)">Links com UTM de endereço podem precisar de atualização.</div>
+                </div>
+                <div style="padding:14px;background:rgba(29,158,117,.04);border:1px solid rgba(29,158,117,.15);border-radius:var(--radius-md)">
+                  <span class="tag tag-sup" style="margin-bottom:8px;display:inline-block">Monitorar</span>
+                  <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Campanhas</div>
+                  <div style="font-size:12px;color:var(--text3)">Formulários de campanha com campo endereço — verificar compatibilidade.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ FEATURE HUB (protótipo — estático) ══ -->
+        <div id="p-feature-hub" class="page">
+          <div class="page-hdr">
+            <div>
+              <div class="ph-title">Feature Hub</div>
+              <div class="ph-sub">Espaço colaborativo de produto</div>
+            </div>
+            <div class="ph-actions">
+              <button class="btn btn-sm btn-primary"><i class="ti ti-plus"></i>Nova feature</button>
+            </div>
+          </div>
+          <div class="feat-header">
+            <div class="fh-top">
+              <div>
+                <div class="fh-title">Simplificar formulário de endereço — checkout</div>
+                <div class="fh-meta">
+                  <span class="status s-doing">Em dev</span>
+                  <span class="tag tag-neu">Experience</span>
+                  <span class="tag tag-neu">Sprint atual</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center">
+                <div style="width:26px;height:26px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--font-display);color:#07070a" data-tip="PO">AP</div>
+                <div style="width:26px;height:26px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--font-display);color:#07070a" data-tip="QA">IK</div>
+                <div style="width:26px;height:26px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--font-display);color:#07070a" data-tip="TL">TL</div>
+              </div>
+            </div>
+            <div class="fh-body">"Se simplificarmos o formulário de endereço no checkout — reduzindo campos obrigatórios e aplicando autopreenchimento via CEP — esperamos aumentar a taxa de conclusão, medindo a queda no abandono e o aumento de conversão no funil."</div>
+          </div>
+          <div class="tabs">
+            <div class="tab-btn active" onclick="fhTab(this,'fh-doc')">Documentação</div>
+            <div class="tab-btn" onclick="fhTab(this,'fh-discuss')">Discussão</div>
+            <div class="tab-btn" onclick="fhTab(this,'fh-tests')">Casos de teste</div>
+            <div class="tab-btn" onclick="fhTab(this,'fh-check')">Checklist</div>
+          </div>
+          <div id="fh-doc">
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-title"><i class="ti ti-target"></i>Escopo &amp; Critério de sucesso</div>
+                <div style="font-size:12.5px;color:var(--text2);line-height:1.6;margin-bottom:10px">Etapa de endereço no fluxo de checkout — planos mensais e anuais. Autopreenchimento via ViaCEP ao digitar CEP.</div>
+                <div style="font-size:12px;padding:8px 10px;background:rgba(29,158,117,.06);border:1px solid rgba(29,158,117,.15);border-radius:var(--radius-sm);color:var(--text2)">✓ Meta: queda de ≥15% no abandono na etapa de endereço em 30 dias</div>
+              </div>
+              <div class="card">
+                <div class="card-title"><i class="ti ti-alert-circle" style="color:var(--red)"></i>Risco identificado — Tech Lead</div>
+                <div style="font-size:12.5px;color:var(--text2);line-height:1.6;padding:10px;background:rgba(226,75,74,.05);border:1px solid rgba(226,75,74,.12);border-radius:var(--radius-sm)">Autopreenchimento por CEP pode falhar para endereços rurais — precisa fallback manual com validação parcial dos campos.</div>
+              </div>
+            </div>
+          </div>
+          <div id="fh-discuss" style="display:none">
+            <div class="card">
+              <div class="comment"><div class="cm-av" style="background:var(--green)">AP</div><div class="cm-body"><div class="cm-hdr"><span class="cm-name">Ana Paula — PO</span><span class="cm-time">hoje 09:14</span></div><div class="cm-text">Precisamos definir quais campos são realmente obrigatórios. Minha hipótese: só CEP, número e complemento — o resto pode ser preenchido automaticamente.</div></div></div>
+              <div class="comment"><div class="cm-av" style="background:var(--purple)">TL</div><div class="cm-body"><div class="cm-hdr"><span class="cm-name">Tech Lead</span><span class="cm-time">hoje 09:31</span></div><div class="cm-text">A API do ViaCEP retorna logradouro, bairro e cidade. Precisamos garantir fallback quando o CEP não for encontrado. Esforço: 3 dias dev + 1 QA.</div></div></div>
+              <div class="comment"><div class="cm-av" style="background:var(--blue)">IK</div><div class="cm-body"><div class="cm-hdr"><span class="cm-name">Isabella Keka — QA</span><span class="cm-time">hoje 10:02</span></div><div class="cm-text">Mapeei 8 casos de teste cobrindo CEP válido, inválido, rural e campos manuais. Testamos no Safari iOS 17 também? Tivemos problema lá recentemente.</div></div></div>
+              <div style="display:flex;gap:8px;margin-top:6px">
+                <input type="text" placeholder="Adicionar comentário..." style="font-size:12px">
+                <button class="btn btn-primary btn-sm">Enviar</button>
+              </div>
+            </div>
+          </div>
+          <div id="fh-tests" style="display:none">
+            <div class="card">
+              <div class="card-title"><i class="ti ti-test-pipe"></i>Casos de teste — IA + QA</div>
+              <div class="task-card"><div class="tc-hdr"><div style="font-family:var(--font-mono);font-size:10px;color:var(--text3)">CT-001</div><div class="tc-title">CEP válido preenche automaticamente</div><span class="tag tag-sup">Passou</span></div><div style="font-size:12px;color:var(--text3)">Digitar CEP válido → campos preenchidos em menos de 1s</div></div>
+              <div class="task-card"><div class="tc-hdr"><div style="font-family:var(--font-mono);font-size:10px;color:var(--text3)">CT-002</div><div class="tc-title">CEP inválido exibe fallback manual</div><span class="tag tag-sup">Passou</span></div><div style="font-size:12px;color:var(--text3)">CEP 00000-000 → mensagem "preencha manualmente"</div></div>
+              <div class="task-card"><div class="tc-hdr"><div style="font-family:var(--font-mono);font-size:10px;color:var(--text3)">CT-003</div><div class="tc-title">Checkout completo no Safari iOS 17</div><span class="tag tag-bug">Falhou</span></div><div style="font-size:12px;color:var(--rl)">Bug detectado: botão trava após preenchimento — task aberta separadamente</div></div>
+              <div class="task-card"><div class="tc-hdr"><div style="font-family:var(--font-mono);font-size:10px;color:var(--text3)">CT-004</div><div class="tc-title">Endereço rural sem cobertura CEP</div><span class="tag tag-neu">Pendente</span></div><div style="font-size:12px;color:var(--text3)">Aguardando ambiente de teste configurado</div></div>
+            </div>
+          </div>
+          <div id="fh-check" style="display:none">
+            <div class="card">
+              <div class="card-title"><i class="ti ti-checklist"></i>Checklist de entrega — 60%</div>
+              <div class="prog-bar" style="margin-bottom:14px"><div class="prog-fill" style="width:60%;background:var(--green)"></div></div>
+              <div class="check-item"><div class="check-box2 done" onclick="toggleCheck(this)"></div><span class="check-text striked">Hipótese documentada e aprovada pelo PO</span></div>
+              <div class="check-item"><div class="check-box2 done" onclick="toggleCheck(this)"></div><span class="check-text striked">Estimativa validada pelo Tech Lead</span></div>
+              <div class="check-item"><div class="check-box2 done" onclick="toggleCheck(this)"></div><span class="check-text striked">Casos de teste escritos e revisados</span></div>
+              <div class="check-item"><div class="check-box2" onclick="toggleCheck(this)"></div><span class="check-text">Todos os casos de teste passando (3/4)</span></div>
+              <div class="check-item"><div class="check-box2" onclick="toggleCheck(this)"></div><span class="check-text">Code review aprovado pelo Tech Lead</span></div>
+              <div class="check-item"><div class="check-box2" onclick="toggleCheck(this)"></div><span class="check-text">Aprovação final do PO antes do deploy</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ RELATÓRIOS (protótipo — estático) ══ -->
+        <div id="p-reports" class="page">
+          <div class="page-hdr">
+            <div>
+              <div class="ph-title">Relatórios de sprint</div>
+              <div class="ph-sub">Gerado automaticamente pela IA ao fim de cada ciclo</div>
+            </div>
+            <div class="ph-actions">
+              <button class="btn btn-sm"><i class="ti ti-file-type-pdf"></i>PDF</button>
+              <button class="btn btn-sm btn-primary"><i class="ti ti-sparkles"></i>Gerar relatório</button>
+            </div>
+          </div>
+          <div class="grid-4" style="margin-bottom:16px">
+            <div class="kpi-card" style="--accent:var(--red)"><div class="kpi-val"><em>18</em>/31</div><div class="kpi-lbl">Bugs resolvidos</div></div>
+            <div class="kpi-card" style="--accent:var(--green)"><div class="kpi-val"><em>8</em></div><div class="kpi-lbl">Melhorias entregues</div></div>
+            <div class="kpi-card" style="--accent:var(--blue)"><div class="kpi-val"><em>2.3</em>d</div><div class="kpi-lbl">Tempo médio resolução</div></div>
+            <div class="kpi-card" style="--accent:var(--purple)"><div class="kpi-val"><em>78</em>/100</div><div class="kpi-lbl">Score de qualidade</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-file-description"></i>Relatório — Sprint Maio 2025</div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div>
+                <div style="font-size:11px;font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--rl);margin-bottom:6px;display:flex;align-items:center;gap:5px"><i class="ti ti-bug"></i>Bugs resolvidos</div>
+                <div style="font-size:12.5px;color:var(--text2);padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm);line-height:1.8">• [BUG] Botão de checkout travado no Safari iOS 17 — resolvido em 1.5d<br>• [BUG] Tela branca em Afiliados — plano Pro — resolvido em 2d<br>• [BUG] CEP rural sem fallback manual — em andamento</div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gl);margin-bottom:6px;display:flex;align-items:center;gap:5px"><i class="ti ti-bulb"></i>Melhorias entregues</div>
+                <div style="font-size:12.5px;color:var(--text2);padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm);line-height:1.8">• Autopreenchimento de CEP no checkout — impacto: -22% abandono<br>• Campos obrigatórios reduzidos de 8 para 4</div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--bl);margin-bottom:6px;display:flex;align-items:center;gap:5px"><i class="ti ti-star"></i>Sugestões para próxima sprint</div>
+                <div style="font-size:12.5px;color:var(--text2);padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm);line-height:1.8">• Resolver CEP rural — RICE score 187 — esforço baixo<br>• Investigar 13 bugs de Checkout pendentes — possível regressão<br>• Atualizar KB do módulo Área de membros — desatualizada há 47d</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ SUPORTE / OCORRÊNCIA ══ -->
+        <div id="p-suporte-ocorrencia" class="page">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-message-report"></i> Relatar ocorrência de cliente</div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px">
+              <i class="ti ti-info-circle" style="font-size:13px;color:var(--blue);vertical-align:-2px"></i> A IA vai avaliar o problema <strong style="color:var(--text2)">antes</strong> de abrir qualquer task — verificando se é dúvida, se pode ser resolvido por comando, ou se realmente é um bug importante.
+            </div>
+            <label>Descrição do problema relatado pelo cliente</label>
+            <textarea id="ocorrenciaInput" style="min-height:100px" placeholder="Ex: Cliente do plano Pro ligou dizendo que tentou fazer upgrade para anual mas o botão de confirmar não responde..."></textarea>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+              <div>
+                <label>Canal de origem</label>
+                <div class="type-pills" id="canalPills">
+                  <button class="type-pill active-sup" onclick="setCanal('suporte',this)">Suporte</button>
+                  <button class="type-pill" onclick="setCanal('comercial',this)">Comercial</button>
+                  <button class="type-pill" onclick="setCanal('chat',this)">Chat</button>
+                </div>
+              </div>
+              <div>
+                <label>Tem evidência visual?</label>
+                <div class="type-pills" id="evidenciaPills">
+                  <button class="type-pill active-sup" onclick="setEvidencia('sim',this)">Sim — anexei</button>
+                  <button class="type-pill" onclick="setEvidencia('nao',this)">Não tenho</button>
+                </div>
+              </div>
+            </div>
+            <label style="margin-top:10px">Link de vídeo ou imagem (opcional)</label>
+            <input type="text" id="ocorrenciaLink" placeholder="https://drive.google.com/... ou https://loom.com/..." style="margin-bottom:4px">
+            <div class="btn-row" style="margin-top:10px">
+              <button class="btn btn-primary" onclick="avaliarOcorrencia()" id="btnOcorrencia"><i class="ti ti-brain"></i> Avaliar com IA</button>
+              <button class="btn" onclick="limparOcorrencia()"><i class="ti ti-x"></i> Limpar</button>
+            </div>
+          </div>
+          <div id="ocorrenciaOutput" style="display:none">
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-analyze"></i> Análise da ocorrência</div>
+              <div id="ocorrenciaOutputInner"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ CLICKUP SYNC ══ -->
+        <div id="p-clickup-sync" class="page">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-refresh"></i> Sincronização com ClickUp — aprendizado da IA</div>
+            <div style="background:rgba(83,74,183,0.08);border:1px solid rgba(83,74,183,0.2);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px">
+              <div style="font-size:12px;color:var(--purple);font-weight:500;margin-bottom:5px"><i class="ti ti-brain" style="vertical-align:-2px"></i> Como funciona</div>
+              <div style="font-size:12px;color:var(--text2);line-height:1.65">O Elixir vai ler todas as tasks existentes no ClickUp e fazer um estudo profundo de padrões: quais módulos têm mais bugs, qual linguagem de título foi aprovada, bugs recorrentes e tempo de resolução.</div>
+            </div>
+            <label>Workspace ID ou URL do ClickUp</label>
+            <input type="text" id="clickupWorkspace" placeholder="Ex: https://app.clickup.com/12345678 ou ID: 12345678" style="margin-bottom:10px">
+            <label>Cole tasks de exemplo para análise (JSON, CSV ou texto livre)</label>
+            <textarea id="clickupTasksInput" style="min-height:130px" placeholder='Cole aqui tasks reais do ClickUp para a IA analisar e aprender...'></textarea>
+            <div class="btn-row">
+              <button class="btn btn-purple" onclick="sincronizarClickUp()" id="btnSync"><i class="ti ti-brain"></i> Analisar e enriquecer KB</button>
+              <button class="btn" onclick="document.getElementById('clickupTasksInput').value='';document.getElementById('clickupSyncOutput').style.display='none'"><i class="ti ti-x"></i> Limpar</button>
+            </div>
+          </div>
+          <div id="clickupSyncOutput" style="display:none">
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-chart-bar"></i> Estudo de padrões — resultado</div>
+              <div id="clickupSyncInner"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ HUB DE DÚVIDAS ══ -->
+        <div id="p-hub-duvidas" class="page">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-help-circle"></i> Hub de dúvidas — pergunte qualquer coisa sobre a Greenn</div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px">
+              <i class="ti ti-sparkles" style="color:var(--green);font-size:13px;vertical-align:-2px"></i> A IA responde com contexto real da Greenn — módulos, regras de negócio, fluxos e comandos técnicos.
+            </div>
+            <label>Seu perfil</label>
+            <div class="type-pills" id="perfilPills" style="margin-bottom:10px">
+              <button class="type-pill active-sup" onclick="setPerfil('dev',this)">Dev</button>
+              <button class="type-pill" onclick="setPerfil('suporte',this)">Suporte</button>
+              <button class="type-pill" onclick="setPerfil('qa',this)">QA</button>
+              <button class="type-pill" onclick="setPerfil('novato',this)">Novato</button>
+              <button class="type-pill" onclick="setPerfil('comercial',this)">Comercial</button>
+            </div>
+            <label>Sua dúvida</label>
+            <textarea id="duvidaInput" style="min-height:90px" placeholder="Ex: Qual comando uso para reprocessar um webhook de Pix que falhou?"></textarea>
+            <div id="duvida-exemplos" style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:10px;color:var(--text3);margin-bottom:2px">Exemplos rápidos — clique para usar:</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap" id="exemplos-chips"></div>
+            </div>
+            <div class="btn-row" style="margin-top:10px">
+              <button class="btn btn-primary" onclick="responderDuvida()" id="btnDuvida"><i class="ti ti-search"></i> Buscar resposta</button>
+              <button class="btn" onclick="document.getElementById('duvidaInput').value='';document.getElementById('duvidaOutput').style.display='none'"><i class="ti ti-x"></i> Limpar</button>
+            </div>
+          </div>
+          <div id="duvidaOutput" style="display:none">
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-bulb"></i> Resposta</div>
+              <div id="duvidaOutputInner"></div>
+            </div>
+          </div>
+          <div class="panel" id="kbSavedPanel" style="display:none">
+            <div class="panel-title"><i class="ti ti-database"></i> Salvo na Knowledge Base</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.6" id="kbSavedText"></div>
+            <div style="font-size:11px;color:var(--text3);margin-top:6px"><i class="ti ti-users" style="vertical-align:-2px"></i> Esta resposta agora está disponível para todos do time.</div>
+          </div>
+        </div>
+
+        <!-- ══ TRILHA GAMIFICADA ══ -->
+        <div id="p-trilha-gamificada" class="page">
+          <div class="kpi-grid" style="margin-bottom:12px">
+            <div class="kpi-card"><div class="kpi-val" id="xp-total"><span>340</span></div><div class="kpi-lbl">XP total acumulado</div></div>
+            <div class="kpi-card"><div class="kpi-val" id="nivel-atual"><span>2</span></div><div class="kpi-lbl">nível atual</div></div>
+            <div class="kpi-card"><div class="kpi-val" id="missoes-ok"><span>3</span></div><div class="kpi-lbl">missões concluídas</div></div>
+            <div class="kpi-card"><div class="kpi-val" id="missoes-pend"><span>1</span></div><div class="kpi-lbl">missões pendentes</div></div>
+          </div>
+          <div class="panel" style="margin-bottom:10px">
+            <div class="panel-title"><i class="ti ti-stairs"></i> Sua progressão</div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:8px" id="nivel-grid"></div>
+            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:5px">
+              <div id="xp-bar" style="height:100%;background:var(--green);border-radius:3px;width:68%;transition:width .5s"></div>
+            </div>
+            <div style="font-size:11px;color:var(--text3)">340 / 500 XP para nível 3 — Especialista</div>
+          </div>
+          <div class="two-col" style="margin-bottom:10px">
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-book-upload"></i> Missão ativa — entregar resumo</div>
+              <div style="background:var(--purple-light);border:1px solid rgba(83,74,183,.3);border-radius:var(--radius-sm);padding:10px;margin-bottom:10px">
+                <div style="font-size:12px;font-weight:500;color:var(--purple);margin-bottom:3px">📚 Missão atribuída pelo gestor</div>
+                <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px" id="missao-titulo">Accelerate — DevOps e alta performance</div>
+                <div style="font-size:11px;color:var(--text3)" id="missao-prazo">Prazo: 30/05/2025 · Valor: 150 XP</div>
+              </div>
+              <label>Seu resumo da leitura</label>
+              <textarea id="resumoInput" style="min-height:120px" placeholder="Escreva aqui seu resumo do conteúdo lido..."></textarea>
+              <div style="font-size:11px;color:var(--text3);margin-top:5px;margin-bottom:8px"><i class="ti ti-info-circle" style="vertical-align:-2px"></i> A IA vai avaliar: profundidade de compreensão, pontos-chave captados e conexão com o trabalho real.</div>
+              <button class="btn btn-primary" style="width:100%" onclick="avaliarResumo()" id="btnResumo"><i class="ti ti-send"></i> Entregar resumo para avaliação</button>
+            </div>
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-user-star"></i> Painel do gestor — missões</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div>
+                  <label>Atribuir nova missão de leitura</label>
+                  <input type="text" id="missaoTitulo" placeholder="Título do livro, artigo ou doc" style="margin-bottom:6px">
+                  <textarea id="missaoDesc" style="min-height:50px" placeholder="Descrição e objetivo da leitura..."></textarea>
+                  <div style="display:flex;gap:6px;margin-top:6px">
+                    <input type="text" id="missaoXP" placeholder="XP (ex: 150)" style="width:80px">
+                    <input type="text" id="missaoPrazo" placeholder="Prazo (ex: 30/05)" style="flex:1">
+                    <button class="btn btn-sm btn-primary" onclick="criarMissao()"><i class="ti ti-plus"></i> Criar</button>
+                  </div>
+                </div>
+                <div style="border-top:.5px solid var(--border);padding-top:8px">
+                  <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Missões ativas do time</div>
+                  <div id="missoes-lista" style="display:flex;flex-direction:column;gap:5px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="avaliacaoOutput" style="display:none">
+            <div class="panel">
+              <div class="panel-title"><i class="ti ti-certificate"></i> Avaliação da IA — resumo entregue</div>
+              <div id="avaliacaoInner"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ FEED MOBILE (protótipo — estático) ══ -->
+        <div id="p-mobile-feed" class="page">
+          <div class="page-hdr">
+            <div>
+              <div class="ph-title">Feed mobile — Suporte e Comercial</div>
+              <div class="ph-sub">Visão do que acontece em tempo real na Greenn</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:center;padding:0 0 20px">
+            <div class="mobile-frame">
+              <div class="mf-bar">
+                <div class="mf-logo">ELIXIR <em>GREENN</em></div>
+                <div class="mf-date">hoje, 18 mai</div>
+              </div>
+              <div class="mf-tabs">
+                <div class="mf-tab active" onclick="mfTab(this,'mf-hoje')">Hoje</div>
+                <div class="mf-tab" onclick="mfTab(this,'mf-times')">Times</div>
+                <div class="mf-tab" onclick="mfTab(this,'mf-alertas')">Alertas</div>
+              </div>
+              <div id="mf-hoje" class="mf-feed">
+                <div class="mfi"><div class="mfi-time">🚀 08:32 · Experience</div><div class="mfi-text">Feature lançada: Novo onboarding para produtores</div><div class="mfi-sub">Acompanhe a taxa de ativação nos próximos 7 dias</div><span class="mfi-tag tag-sup">Entregue</span></div>
+                <div class="mfi"><div class="mfi-time">🐛 09:14 · TechFin</div><div class="mfi-text">3 bugs abertos no módulo de Nota Fiscal</div><div class="mfi-sub">Possível impacto em emissão retroativa.</div><span class="mfi-tag tag-bug">Atenção</span></div>
+                <div class="mfi"><div class="mfi-time">🌐 10:45 · PaymentOps</div><div class="mfi-text">Feature Hub: Antifraude Pix entrou em discussão</div><div class="mfi-sub">PO, QA e TL convocados. Decisão esperada até quarta.</div><span class="mfi-tag tag-pr">Discussão</span></div>
+                <div class="mfi"><div class="mfi-time">✅ 14:00 · Bluee</div><div class="mfi-text">Integração Bluee × Greenn Pay: todos os testes passando</div><div class="mfi-sub">Deploy confirmado para hoje às 18h.</div><span class="mfi-tag tag-sup">QA OK</span></div>
+                <div class="mfi"><div class="mfi-time">📊 17:00 · Resumo</div><div class="mfi-text">Hoje: 1 feature · 5 bugs · 2 discussões</div><div class="mfi-sub">Qualidade geral: estável. Checkout em atenção.</div><span class="mfi-tag tag-neu">Resumo</span></div>
+              </div>
+              <div id="mf-times" class="mf-feed" style="display:none">
+                <div class="mfi"><div class="mfi-time">💳 TechFin</div><div class="mfi-text">18 bugs · 4 features em andamento</div><div class="mfi-sub">Score de qualidade: 91%</div></div>
+                <div class="mfi"><div class="mfi-time">✨ Experience</div><div class="mfi-text">9 bugs · 6 features em andamento</div><div class="mfi-sub">Feature lançada hoje: onboarding</div></div>
+                <div class="mfi"><div class="mfi-time">💸 PaymentOps</div><div class="mfi-text">14 bugs · 5 features em andamento</div><div class="mfi-sub">Antifraude Pix em discussão</div></div>
+              </div>
+              <div id="mf-alertas" class="mf-feed" style="display:none">
+                <div class="mfi" style="border:1px solid rgba(226,75,74,.2)"><div class="mfi-time">🔴 Crítico</div><div class="mfi-text">Checkout com 31 bugs — 40% acima da média</div><div class="mfi-sub">Possível regressão recente</div><span class="mfi-tag tag-bug">Crítico</span></div>
+                <div class="mfi" style="border:1px solid rgba(186,117,23,.2)"><div class="mfi-time">🟡 Atenção</div><div class="mfi-text">KB Área de membros desatualizada — 47 dias</div><div class="mfi-sub">Qualidade de triagem comprometida</div><span class="mfi-tag tag-neu">Atenção</span></div>
+              </div>
+              <div class="mf-nav">
+                <div class="mf-nav-item active"><i class="ti ti-home"></i>Feed</div>
+                <div class="mf-nav-item"><i class="ti ti-users"></i>Times</div>
+                <div class="mf-nav-item"><i class="ti ti-bell"></i>Alertas</div>
+                <div class="mf-nav-item"><i class="ti ti-school"></i>Trilha</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ HISTÓRICO ══ -->
+        <div id="p-historico" class="page">
+          <div class="panel">
+            <div class="panel-title"><i class="ti ti-history"></i> Todas as tasks geradas</div>
+            <div id="historicoList">
+              <div class="empty-state"><i class="ti ti-history"></i>Nenhuma task salva ainda.</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /page-content -->
+    </main>
+
+  </div><!-- /app-body -->
+</div><!-- /app -->
+
+<!-- Env vars do Vite (.env) -->
 <script type="module" src="/src/env.js"></script>
 <!-- Scripts em ordem de dependência -->
 <script src="/js/config.js"></script>
@@ -717,5 +1066,135 @@ Quanto mais tasks, mais rico o aprendizado da IA.'></textarea>
 <script src="/js/hub-duvidas.js"></script>
 <script src="/js/trilha.js"></script>
 <script src="/js/navigation.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   LOGIN + ROLE SYSTEM
+════════════════════════════════════════════════════════ */
+let currentRole = 'qa';
+
+const ROLES = {
+  qa:      { label:'QA',      fullLabel:'QA — Isabella Keka',       color:'var(--blue)',   initials:'IK' },
+  po:      { label:'PO',      fullLabel:'PO — Ana Paula',            color:'var(--green)',  initials:'AP' },
+  cto:     { label:'CTO',     fullLabel:'CTO / Tech Lead',           color:'var(--purple)', initials:'TL' },
+  manager: { label:'Manager', fullLabel:'Manager',                   color:'var(--amber)',  initials:'MG' },
+  support: { label:'Suporte', fullLabel:'Suporte / Comercial',       color:'var(--red)',    initials:'SP' },
+  dev:     { label:'Dev',     fullLabel:'Developer',                 color:'var(--pl)',     initials:'DV' },
+};
+
+function selectRole(role, el) {
+  document.querySelectorAll('.role-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentRole = role;
+}
+
+function doLogin() {
+  document.getElementById('login').classList.remove('active');
+  document.getElementById('app').classList.add('active');
+  applyRole(currentRole);
+  // Animate KPI bars and check API key
+  animateDashboard();
+  if (typeof apiKey !== 'undefined' && !apiKey) openModal();
+}
+
+function doLogout() {
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('login').classList.add('active');
+  document.getElementById('roleMenu').classList.remove('open');
+}
+
+function switchRole(role, e) {
+  if (e) e.stopPropagation();
+  currentRole = role;
+  applyRole(role);
+  document.getElementById('roleMenu').classList.remove('open');
+  const dashTitle = ROLES[role] ? 'Dashboard — ' + ROLES[role].label : 'Dashboard';
+  document.getElementById('dash-role-title').textContent = dashTitle;
+}
+
+function applyRole(role) {
+  const r = ROLES[role]; if (!r) return;
+  document.getElementById('avImg').style.background = r.color;
+  document.getElementById('avImg').textContent = r.initials;
+  document.getElementById('avRole').textContent = r.label;
+  document.getElementById('sriRole').textContent = r.fullLabel;
+  document.getElementById('dash-role-title').textContent = 'Dashboard — ' + r.label;
+  document.querySelectorAll('.rm-item').forEach(item => {
+    const isActive = item.dataset.role === role;
+    item.classList.toggle('active', isActive);
+    const existing = item.querySelector('.rm-check');
+    if (existing) existing.remove();
+    if (isActive) {
+      const chk = document.createElement('i');
+      chk.className = 'ti ti-check rm-check';
+      item.appendChild(chk);
+    }
+  });
+}
+
+function toggleRoleMenu() {
+  document.getElementById('roleMenu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.avatar-btn')) {
+    const m = document.getElementById('roleMenu');
+    if (m) m.classList.remove('open');
+  }
+});
+
+/* ═══════════════════════════════════════════════════════
+   TAB HELPERS (new prototype pages)
+════════════════════════════════════════════════════════ */
+function qaTab(btn, tabId) {
+  const view = document.getElementById('p-qa-skills');
+  view.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['qa-pr-tab','qa-feat-tab','qa-impact-tab'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === tabId ? 'block' : 'none';
+  });
+}
+
+function fhTab(btn, tabId) {
+  const view = document.getElementById('p-feature-hub');
+  view.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['fh-doc','fh-discuss','fh-tests','fh-check'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === tabId ? 'block' : 'none';
+  });
+}
+
+function mfTab(btn, tabId) {
+  btn.closest('.mf-tabs').querySelectorAll('.mf-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['mf-hoje','mf-times','mf-alertas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === tabId ? 'block' : 'none';
+  });
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('done');
+  const txt = el.nextElementSibling;
+  if (txt) txt.classList.toggle('striked', el.classList.contains('done'));
+}
+
+/* ═══════════════════════════════════════════════════════
+   DASHBOARD ANIMATION
+════════════════════════════════════════════════════════ */
+function animateDashboard() {
+  document.querySelectorAll('.bc-fill, .conf-fill2, .prog-fill').forEach(el => {
+    const target = el.style.width;
+    el.style.width = '0';
+    requestAnimationFrame(() => { setTimeout(() => { el.style.width = target; }, 200 + Math.random() * 300); });
+  });
+  document.querySelectorAll('.kpi-val').forEach(el => {
+    el.style.opacity = '0'; el.style.transform = 'translateY(10px)';
+    el.style.transition = 'opacity .4s ease, transform .4s ease';
+    setTimeout(() => { el.style.opacity = '1'; el.style.transform = 'none'; }, 150 + Math.random() * 300);
+  });
+}
+</script>
 </body>
 </html>
