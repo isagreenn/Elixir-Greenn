@@ -388,6 +388,7 @@
         li.innerHTML = `
           <span class="cs-dot" style="background:${color}"></span>
           <span class="cs-text">${opt.textContent}</span>
+          <i class="ti ti-check cs-check"></i>
         `;
         li.addEventListener('click', () => {
           selectIndex(i);
@@ -412,7 +413,7 @@
         syncDisplay();
       }
       function open() {
-        document.querySelectorAll('.cs-select.open').forEach(s => s.classList.remove('open'));
+        document.querySelectorAll('.cs-select.open, .ms-select.open').forEach(s => s.classList.remove('open'));
         wrap.classList.add('open');
         trigger.setAttribute('aria-expanded', 'true');
       }
@@ -521,7 +522,11 @@
       search.focus();
     }
 
-    function open() { wrap.classList.add('open'); renderPanel(search.value); }
+    function open() {
+      document.querySelectorAll('.cs-select.open, .ms-select.open').forEach(s => { if (s !== wrap) s.classList.remove('open'); });
+      wrap.classList.add('open');
+      renderPanel(search.value);
+    }
     function close() { wrap.classList.remove('open'); }
 
     control.addEventListener('click', () => { search.focus(); open(); });

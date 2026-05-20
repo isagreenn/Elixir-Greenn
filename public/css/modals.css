@@ -353,11 +353,13 @@
 .cs-option:hover,
 .cs-option.active { background: rgba(29,158,117,.12); color: var(--text); }
 .cs-option.selected { background: rgba(29,158,117,.18); }
-.cs-option.selected::after {
-  content: "\eb7b"; /* ti ti-check */
-  font-family: "tabler-icons"; margin-left: auto;
-  color: var(--green); font-size: 14px;
+.cs-option .cs-check {
+  margin-left: auto;
+  color: var(--green);
+  font-size: 14px;
+  opacity: 0;
 }
+.cs-option.selected .cs-check { opacity: 1; }
 .cs-option[data-placeholder] { color: var(--text3); }
 
 /* ── Multi-Select (chips) ──────────────────────────────── */
