@@ -171,6 +171,7 @@ async function gerarTaskFromModal() {
   const titulo       = document.getElementById('ct_titulo').value.trim();
   const descricao    = document.getElementById('ct_descricao').value.trim();
   const cliente      = document.getElementById('ct_cliente').value.trim();
+  const origem       = document.getElementById('ct_origem')?.value.trim() || '';
   const prioridade   = document.getElementById('ct_prioridade').value;
   const observadores = document.getElementById('ct_observadores').value.trim();
   const arquivos     = document.getElementById('ct_arquivos').files;
@@ -265,6 +266,7 @@ Regras:
 - Título: ${titulo}
 - Descrição: ${descricao}
 - Cliente afetado: ${cliente}
+- Origem do chamado: ${origem || '(não informado)'}
 - Prioridade: ${prioridade}
 - Observadores: ${observadores}
 - Arquivos anexados: ${arquivosNomes}
@@ -310,7 +312,7 @@ Foque em gerar "titulo" no padrão correto + "contextos" certos — são os camp
     ctSetStep(2, 'done');
     // Step 3 — chamada real ClickUp
     ctSetStep(3, 'active');
-    const formInfo = { titulo, descricao, cliente, prioridade, observadores };
+    const formInfo = { titulo, descricao, cliente, origem, prioridade, observadores };
     const { id: taskId, url: taskUrl } = await ctCriarTaskClickUp(data, formInfo, arquivos);
     ctSetStep(3, 'done');
     await ctSleep(280);

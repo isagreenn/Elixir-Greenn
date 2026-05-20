@@ -55,6 +55,11 @@ const CT_CONTEXTOS = {
 };
 
 // ────────────────────────────────────────────────────────
+// ClickUp custom field "Origem do report" — short_text
+// ────────────────────────────────────────────────────────
+const CT_ORIGEM_FIELD_ID = 'bc3c75f3-8f4f-4822-b3d4-d192bfd96428';
+
+// ────────────────────────────────────────────────────────
 // ClickUp custom field "🧑‍💻 Observadores" — labels (multi-select)
 // ────────────────────────────────────────────────────────
 const CT_OBSERVADORES_FIELD_ID = '2f9ad193-a668-4941-b820-ee173760b598';

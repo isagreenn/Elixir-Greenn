@@ -255,6 +255,11 @@
     </div>
 
     <div class="tm-field">
+      <label>Origem do chamado</label>
+      <input type="text" id="ct_origem" placeholder="Ex: WhatsApp, link do Crisp, e-mail, etc.">
+    </div>
+
+    <div class="tm-field">
       <label>Arquivos complementares</label>
       <label class="tm-drop" id="ct_drop" for="ct_arquivos">
         <input type="file" id="ct_arquivos" multiple hidden>
@@ -331,7 +336,7 @@
   function resetReportForm() {
     document.getElementById('ct_outputWrap').style.display = 'none';
     document.getElementById('ct_formView').style.display = 'block';
-    ['ct_titulo','ct_descricao','ct_cliente','ct_observadores'].forEach(id => {
+    ['ct_titulo','ct_descricao','ct_cliente','ct_origem','ct_observadores'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });

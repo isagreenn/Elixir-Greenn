@@ -110,10 +110,11 @@ async function ctCriarTaskClickUp(taskData, formInfo, files) {
   const extrasBlock = extras.length
     ? `\n\nInformações complementares:\n${extras.join('\n')}`
     : '';
+  const origemLine = formInfo.origem ? `Origem do chamado: ${formInfo.origem}\n` : '';
 
   const description =
 `Cliente afetado: ${formInfo.cliente}
-
+${origemLine}
 Descrição do problema:
 ${formInfo.descricao || ''}${extrasBlock}`;
 
@@ -131,6 +132,9 @@ ${formInfo.descricao || ''}${extrasBlock}`;
   }
   if (observadoresIds.length && typeof CT_OBSERVADORES_FIELD_ID !== 'undefined') {
     customFields.push({ id: CT_OBSERVADORES_FIELD_ID, value: observadoresIds });
+  }
+  if (formInfo.origem && typeof CT_ORIGEM_FIELD_ID !== 'undefined') {
+    customFields.push({ id: CT_ORIGEM_FIELD_ID, value: formInfo.origem });
   }
 
   const body = {
