@@ -52,6 +52,45 @@ const CT_CONTEXTOS = {
   'INFRA':                     'a2b7ba66-a4f9-4c3a-bc22-55796239332e'
 };
 
+// ────────────────────────────────────────────────────────
+// ClickUp custom field "🧑‍💻 Observadores" — labels (multi-select)
+// ────────────────────────────────────────────────────────
+const CT_OBSERVADORES_FIELD_ID = '2f9ad193-a668-4941-b820-ee173760b598';
+
+const CT_OBSERVADORES = [
+  { id: '37fae986-8e5f-4857-99be-ba29b9927fee', label: 'SUPORTE - Felipe Bertaggi',        color: '#02BCD4' },
+  { id: 'e8c536e8-d527-49c3-ab7b-20d29fff103d', label: 'SUPORTE - Gabrielle Azevedo',      color: '#bf55ec' },
+  { id: '4d1768bb-1f3d-43cb-b75d-3bf448388bb1', label: 'SUPORTE - Nathalia Santos',        color: '#bf55ec' },
+  { id: 'e632532b-e337-4fe2-8eb8-7926052467dc', label: 'SUPORTE - Vittor Fernandes',       color: '#02BCD4' },
+  { id: '23258e6e-db33-4e90-8dce-96e5654a4611', label: 'SUPORTE - Aline Cristo',           color: '#2ecd6f' },
+  { id: 'deeb84a6-55cc-48d9-a09c-6e292ae766ac', label: 'SUPORTE - Ana Paula',              color: '#f9d900' },
+  { id: '7800742d-6157-4b94-a4dc-44a4ceb7da42', label: 'SUPORTE - Eduardo Nicolau',        color: '#1bbc9c' },
+  { id: '4e6b84c1-ab16-4364-8f9f-3e0f87250cda', label: 'SUPORTE - Bruna Giseli',           color: '#f900ea' },
+  { id: 'f685f21a-3d67-493d-bcc7-622df0dfab43', label: 'SUPORTE - Bruna Ramos',            color: '#81B1FF' },
+  { id: '7d3f4a33-ea18-40e8-b28f-636191b438d1', label: 'SUPORTE - Joao Domingues',         color: '#7C4DFF' },
+  { id: '9a5a9bb2-a31b-45d8-89be-8f158fb0a949', label: 'SUPORTE - João Lucas',             color: '#f9d900' },
+  { id: '0f17f29e-4b2d-4316-8cea-0ca83e7abc81', label: 'SUPORTE - Matheus Gimenes',        color: '#E65100' },
+  { id: 'c12ca63c-2725-4039-ae05-991f23cd1a45', label: 'SUPORTE - Rafaela de Almeida',     color: '#b5bcc2' },
+  { id: 'c64de196-2d0d-4efc-a9c5-2698d18cfa32', label: 'SUPORTE - Amanda Felix',           color: '#EA80FC' },
+  { id: '9f22558a-b530-41d4-8618-a6ce2f8d23fc', label: 'SUPORTE - Mateus Lansa',           color: '#81B1FF' },
+  { id: '0fd915c6-1e61-45fb-8020-2d9d68b3071f', label: 'COMERCIAL - Emerson Gomes',        color: '#f9d900' },
+  { id: '91b689b0-c01c-451a-bd82-3de865738fa0', label: 'ADMINISTRATIVO - João Pariz',      color: '#2ecd6f' },
+  { id: '787e0050-5b2f-4dae-ac92-5c083c7cd672', label: 'COMERCIAL - Viviane Motta',        color: '#FF7FAB' },
+  { id: 'e6351952-3c8a-461e-84f1-1f21fe8f7c5c', label: 'FINANCEIRO - Gabriela Pinheiro',   color: '#EA80FC' },
+  { id: 'a732de9f-8fd1-4847-a1ea-a86e6374957c', label: 'ADMINISTRATIVO - Ludmilla Américo',color: '#FF4081' },
+  { id: '80da5a94-53ad-4d42-a405-ed51a47b1bf8', label: 'TECNOLOGIA - Victor Caldeira',     color: '#3e63dd' },
+  { id: '64ba6367-1271-48f8-a4dc-e92f7b4c71ee', label: 'SUPORTE - Ana Franca',             color: '#f76808' },
+  { id: '3ae29384-0502-4481-8361-fcc568dcc807', label: 'FINANCEIRO - Aline Stocco',        color: '#e93d82' },
+  { id: '7a7ffd4c-d492-4340-aeac-8d0312d4f64e', label: 'SUPORTE - Gustavo Silva',          color: '#12a594' },
+  { id: 'fa1700a4-97fb-4dec-99f1-886d19b587c7', label: 'SUPORTE - Lorrayne Breves',        color: '#f76808' },
+  { id: 'a6b8140a-9491-476d-8d2e-5c90e1736c54', label: 'SUPORTE - Ketlin Reis',            color: '#f76808' },
+  { id: 'b3ae654b-dc77-4910-bac6-04ac64e09546', label: 'SUPORTE - Brenda Coutinho',        color: '#e93d82' },
+  { id: 'c97a662f-8a04-4902-af5c-1749f0086cb4', label: 'TECNOLOGIA - Manoela',             color: '#b6b6ff' },
+  { id: 'd2d95d53-06cf-490d-aa24-8c47c87b035a', label: 'SUPORTE - Guilherme Princival',    color: '#0091ff' },
+  { id: 'f059bcb1-e9d1-4c1f-8ebc-823c11399c61', label: 'COMERCIAL - Matheus Vaz',          color: '#aec0f5' },
+  { id: '600e48fe-6da3-4985-9480-b0d97c5379b8', label: 'TECNOLOGIA - Tanielson Moura',     color: '#ff0000' }
+];
+
 const CT_STEPS = [
   'Validando dados enviados',
   'Analisando contexto e módulo',

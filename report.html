@@ -77,6 +77,11 @@
       0 1px 0 rgba(255,255,255,.02) inset,
       0 16px 40px rgba(0,0,0,.3);
   }
+  /* override .task-modal scroll on standalone page so popovers can overflow */
+  .rp-card.task-modal {
+    max-height: none;
+    overflow: visible;
+  }
   [data-theme="light"] .rp-card {
     box-shadow:
       0 1px 0 rgba(0,0,0,.02) inset,
@@ -213,18 +218,35 @@
 
     <div class="tm-field">
       <label>Prioridade<span class="req">*</span></label>
-      <select id="ct_prioridade">
-        <option value="">Selecionar prioridade</option>
-        <option>Urgente</option>
-        <option>Alta</option>
-        <option>Normal</option>
-        <option>Baixa</option>
-      </select>
+      <div class="cs-select" data-cs-for="ct_prioridade">
+        <select id="ct_prioridade" class="cs-native" aria-hidden="true" tabindex="-1">
+          <option value="">Selecionar prioridade</option>
+          <option data-color="#E04D4D">Urgente</option>
+          <option data-color="#F2A53B">Alta</option>
+          <option data-color="#1D9E75">Normal</option>
+          <option data-color="#6E7B8B">Baixa</option>
+        </select>
+        <button type="button" class="cs-trigger" aria-haspopup="listbox" aria-expanded="false">
+          <span class="cs-value">
+            <span class="cs-dot" style="background:transparent"></span>
+            <span class="cs-text cs-placeholder">Selecionar prioridade</span>
+          </span>
+          <i class="ti ti-chevron-down cs-caret"></i>
+        </button>
+        <ul class="cs-panel" role="listbox" tabindex="-1"></ul>
+      </div>
     </div>
 
     <div class="tm-field">
       <label>Observadores<span class="req">*</span></label>
-      <input type="text" id="ct_observadores" placeholder="Nomes separados por vírgula">
+      <div class="ms-select" id="ct_observadores_widget">
+        <div class="ms-control" tabindex="0">
+          <div class="ms-chips" id="ct_observadores_chips"></div>
+          <input type="text" class="ms-search" id="ct_observadores_search" placeholder="Digite para pesquisar...">
+        </div>
+        <ul class="ms-panel" id="ct_observadores_panel" role="listbox"></ul>
+      </div>
+      <input type="hidden" id="ct_observadores">
     </div>
   </div>
 
@@ -262,8 +284,10 @@
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
+    const obsWidget = document.getElementById('ct_observadores_widget');
+    if (obsWidget && obsWidget._reset) obsWidget._reset();
     const prio = document.getElementById('ct_prioridade');
-    if (prio) prio.value = '';
+    if (prio) { prio.value = ''; prio.dispatchEvent(new Event('change', { bubbles: true })); }
     const list = document.getElementById('ct_fileList');
     if (list) list.innerHTML = '';
     const inp = document.getElementById('ct_arquivos');
@@ -293,9 +317,191 @@
     }
   };
 
+  // ── Custom Select ────────────────────────────────────────
+  function initCustomSelects() {
+    document.querySelectorAll('.cs-select').forEach(wrap => {
+      const native = wrap.querySelector('.cs-native');
+      const trigger = wrap.querySelector('.cs-trigger');
+      const panel = wrap.querySelector('.cs-panel');
+      const valueDot = wrap.querySelector('.cs-value .cs-dot');
+      const valueText = wrap.querySelector('.cs-value .cs-text');
+
+      // build options
+      panel.innerHTML = '';
+      Array.from(native.options).forEach((opt, i) => {
+        const li = document.createElement('li');
+        li.className = 'cs-option';
+        li.setAttribute('role', 'option');
+        li.dataset.value = opt.value;
+        if (!opt.value) li.dataset.placeholder = '1';
+        const color = opt.dataset.color || 'transparent';
+        li.innerHTML = `
+          <span class="cs-dot" style="background:${color}"></span>
+          <span class="cs-text">${opt.textContent}</span>
+        `;
+        li.addEventListener('click', () => {
+          selectIndex(i);
+          close();
+        });
+        panel.appendChild(li);
+      });
+
+      function syncDisplay() {
+        const opt = native.options[native.selectedIndex];
+        const color = opt?.dataset.color || 'transparent';
+        valueDot.style.background = color;
+        valueText.textContent = opt?.textContent || '';
+        valueText.classList.toggle('cs-placeholder', !opt?.value);
+        panel.querySelectorAll('.cs-option').forEach((li, idx) => {
+          li.classList.toggle('selected', idx === native.selectedIndex && !!native.options[idx].value);
+        });
+      }
+      function selectIndex(i) {
+        native.selectedIndex = i;
+        native.dispatchEvent(new Event('change', { bubbles: true }));
+        syncDisplay();
+      }
+      function open() {
+        document.querySelectorAll('.cs-select.open').forEach(s => s.classList.remove('open'));
+        wrap.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+      }
+      function close() {
+        wrap.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+
+      trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        wrap.classList.contains('open') ? close() : open();
+      });
+      trigger.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault(); open();
+        }
+      });
+      native.addEventListener('change', syncDisplay);
+
+      syncDisplay();
+    });
+
+    document.addEventListener('click', e => {
+      document.querySelectorAll('.cs-select.open').forEach(s => {
+        if (!s.contains(e.target)) s.classList.remove('open');
+      });
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.cs-select.open').forEach(s => s.classList.remove('open'));
+      }
+    });
+  }
+
+  // ── Multi-select Observadores ────────────────────────────
+  function initObservadoresSelect() {
+    const wrap = document.getElementById('ct_observadores_widget');
+    if (!wrap) return;
+    const control = wrap.querySelector('.ms-control');
+    const chipsBox = wrap.querySelector('#ct_observadores_chips');
+    const search = wrap.querySelector('#ct_observadores_search');
+    const panel = wrap.querySelector('#ct_observadores_panel');
+    const hidden = document.getElementById('ct_observadores');
+
+    const state = { selected: new Set(), activeIdx: -1 };
+    window._ctObservadoresIds = [];
+
+    function renderPanel(filterText) {
+      const q = (filterText || '').trim().toLowerCase();
+      const items = CT_OBSERVADORES.filter(o => !q || o.label.toLowerCase().includes(q));
+      panel.innerHTML = '';
+      if (!items.length) {
+        const li = document.createElement('li');
+        li.className = 'ms-empty';
+        li.textContent = 'Nenhum resultado';
+        panel.appendChild(li);
+        return;
+      }
+      items.forEach((o, i) => {
+        const li = document.createElement('li');
+        li.className = 'ms-option' + (state.selected.has(o.id) ? ' selected' : '');
+        li.style.setProperty('--chip-bg', o.color);
+        li.dataset.id = o.id;
+        li.innerHTML = `
+          <span class="ms-dot"></span>
+          <span class="ms-label">${o.label}</span>
+          <i class="ti ti-check ms-check"></i>
+        `;
+        li.addEventListener('mousedown', e => { e.preventDefault(); toggle(o.id); });
+        panel.appendChild(li);
+      });
+    }
+
+    function syncHidden() {
+      const labels = [...state.selected]
+        .map(id => CT_OBSERVADORES.find(o => o.id === id)?.label)
+        .filter(Boolean);
+      hidden.value = labels.join(', ');
+      window._ctObservadoresIds = [...state.selected];
+    }
+
+    function renderChips() {
+      chipsBox.innerHTML = '';
+      [...state.selected].forEach(id => {
+        const o = CT_OBSERVADORES.find(x => x.id === id);
+        if (!o) return;
+        const chip = document.createElement('span');
+        chip.className = 'ms-chip';
+        chip.style.setProperty('--chip-bg', o.color);
+        chip.innerHTML = `<span>${o.label}</span><span class="ms-chip-x" title="Remover"><i class="ti ti-x"></i></span>`;
+        chip.querySelector('.ms-chip-x').addEventListener('click', e => {
+          e.stopPropagation();
+          toggle(id);
+        });
+        chipsBox.appendChild(chip);
+      });
+    }
+
+    function toggle(id) {
+      if (state.selected.has(id)) state.selected.delete(id);
+      else state.selected.add(id);
+      renderChips();
+      syncHidden();
+      renderPanel(search.value);
+      search.focus();
+    }
+
+    function open() { wrap.classList.add('open'); renderPanel(search.value); }
+    function close() { wrap.classList.remove('open'); }
+
+    control.addEventListener('click', () => { search.focus(); open(); });
+    search.addEventListener('focus', open);
+    search.addEventListener('input', () => renderPanel(search.value));
+    search.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !search.value && state.selected.size) {
+        const last = [...state.selected].pop();
+        toggle(last);
+      } else if (e.key === 'Escape') { close(); }
+    });
+    document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
+
+    // expose reset
+    wrap._reset = () => {
+      state.selected.clear();
+      window._ctObservadoresIds = [];
+      hidden.value = '';
+      search.value = '';
+      renderChips();
+      renderPanel('');
+    };
+
+    renderPanel('');
+  }
+
   (function initStandalone() {
     window._ctExtraInfo = [];
     initCriarTaskDrop();
+    initCustomSelects();
+    initObservadoresSelect();
   })();
 </script>
 </body>

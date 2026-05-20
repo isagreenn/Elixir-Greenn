@@ -86,14 +86,24 @@ ${formInfo.descricao || ''}`;
     .map(label => CT_CONTEXTOS[label])
     .filter(Boolean);
 
+  const observadoresIds = Array.isArray(window._ctObservadoresIds)
+    ? window._ctObservadoresIds
+    : [];
+
+  const customFields = [];
+  if (contextoIds.length) {
+    customFields.push({ id: CT_CONTEXTO_FIELD_ID, value: contextoIds });
+  }
+  if (observadoresIds.length && typeof CT_OBSERVADORES_FIELD_ID !== 'undefined') {
+    customFields.push({ id: CT_OBSERVADORES_FIELD_ID, value: observadoresIds });
+  }
+
   const body = {
     name: taskData.titulo || formInfo.titulo,
     description,
     priority: CT_PRIORITY_MAP[formInfo.prioridade] || 3,
     tags: ['bug', 'elixir-greenn'],
-    custom_fields: contextoIds.length
-      ? [{ id: CT_CONTEXTO_FIELD_ID, value: contextoIds }]
-      : []
+    custom_fields: customFields
   };
 
   const res = await fetch(`https://api.clickup.com/api/v2/list/${listId}/task`, {
