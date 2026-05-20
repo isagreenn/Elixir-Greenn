@@ -7,8 +7,41 @@ async function callAI(userMessage) {
     if (typeof openModal === 'function') openModal();
     throw new Error('API Key não configurada');
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
-  const res = await fetch(url, {
+
+  const models = [GEMINI_MODEL, ...(typeof GEMINI_FALLBACKS !== 'undefined' ? GEMINI_FALLBACKS : [])];
+  const transientStatuses = new Set([429, 500, 502, 503, 504]);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  let lastErr;
+  for (let i = 0; i < models.length; i++) {
+    const model = models[i];
+    // 2 tentativas por modelo (1 inicial + 1 retry) com backoff curto.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await _geminiCall(model, key, userMessage);
+        if (res.ok) return _parseGeminiResponse(await res.json());
+        if (!transientStatuses.has(res.status)) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || `Erro ${res.status}`);
+        }
+        // transient → backoff
+        lastErr = new Error(`Modelo ${model} indisponível (${res.status})`);
+        await sleep(600 + attempt * 900);
+      } catch (e) {
+        lastErr = e;
+        // Erro de rede também tenta de novo
+        if (attempt === 0) await sleep(500);
+        else break;
+      }
+    }
+    // próximo modelo
+  }
+  throw new Error((lastErr && lastErr.message) || 'IA indisponível no momento. Tente novamente em alguns segundos.');
+}
+
+function _geminiCall(model, key, userMessage) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+  return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -21,15 +54,12 @@ async function callAI(userMessage) {
       }
     })
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `Erro ${res.status}`);
-  }
-  const data = await res.json();
+}
+
+function _parseGeminiResponse(data) {
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   const finishReason = data.candidates?.[0]?.finishReason;
   const clean = text.replace(/```json|```/g, '').trim();
-
   try {
     return JSON.parse(clean);
   } catch (parseErr) {
