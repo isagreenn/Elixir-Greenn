@@ -175,6 +175,7 @@
     padding: 7px 9px; font-size: 12.5px;
   }
   .rp-card .tm-field textarea { min-height: 56px; }
+  .rp-card #ct_descricao { max-height: 150px; resize: none; }
   .rp-card .tm-field label.tm-drop {
     padding: 10px 14px; gap: 3px;
   }
@@ -336,6 +337,8 @@
     });
     const obsWidget = document.getElementById('ct_observadores_widget');
     if (obsWidget && obsWidget._reset) obsWidget._reset();
+    const ta = document.getElementById('ct_descricao');
+    if (ta) { ta.style.height = 'auto'; }
     const prio = document.getElementById('ct_prioridade');
     if (prio) { prio.value = ''; prio.dispatchEvent(new Event('change', { bubbles: true })); }
     const list = document.getElementById('ct_fileList');
@@ -553,6 +556,21 @@
     renderPanel('');
   }
 
+  // ── Auto-grow textarea (com teto) ───────────────────────
+  function initAutoGrow() {
+    const ta = document.getElementById('ct_descricao');
+    if (!ta) return;
+    const MAX = 150; // px — após isso aparece scroll interno
+    const grow = () => {
+      ta.style.height = 'auto';
+      const next = Math.min(ta.scrollHeight, MAX);
+      ta.style.height = next + 'px';
+      ta.style.overflowY = ta.scrollHeight > MAX ? 'auto' : 'hidden';
+    };
+    ta.addEventListener('input', grow);
+    grow();
+  }
+
   // ── Theme toggle ────────────────────────────────────────
   function initThemeToggle() {
     const btn = document.getElementById('rpThemeToggle');
@@ -598,6 +616,7 @@
     initObservadoresSelect();
     initCursorGlow();
     initThemeToggle();
+    initAutoGrow();
   })();
 </script>
 </body>
