@@ -464,9 +464,10 @@
     function toggle(id) {
       if (state.selected.has(id)) state.selected.delete(id);
       else state.selected.add(id);
+      search.value = '';
       renderChips();
       syncHidden();
-      renderPanel(search.value);
+      renderPanel('');
       search.focus();
     }
 
