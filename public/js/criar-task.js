@@ -282,7 +282,35 @@ Se COMPLETA (caso padrão):
 {"status":"completa","tipo":"BUG","titulo":"[Contexto] - Descrição breve do problema","modulo":"nome do módulo Greenn","severidade":"Crítico|Alto|Médio|Baixo","contextos":["Label 1","Label 2"],"confianca":85}
 
 # Regra do campo "contextos"
-"contextos" = array com 1 a 3 labels EXATOS da lista abaixo (case-sensitive). Escolha o(s) mais relevante(s) pro problema. Se em dúvida entre módulo macro e funcionalidade, prefira a funcionalidade (Status de Venda > Greenn ADM, Reembolso > Greenn ADM).
+"contextos" = array com labels EXATOS da lista abaixo (case-sensitive).
+
+REGRA DE QUANTIDADE — PREFIRA UM ÚNICO CONTEXTO.
+- DEFAULT: 1 contexto. Esse é o caso esperado em ~90% dos reports.
+- Só inclua 2 (no máximo) se o bug ATRAVESSA dois sub-contextos distintos do MESMO nível (ex: "Cupom não aplica no Checkout e pagamento" → ["Checkout e pagamento", "Cupom"]).
+- NUNCA mais de 2.
+
+PROIBIDO — módulos MACRO junto com sub-específico.
+Se você já escolheu um sub-contexto específico (Reembolso, Status de Venda, Saque, Cupom, Order Bump, Reconciliação, Saldo, Antecipação e recebíveis, Checkout e pagamento, Gestão de assinatura, Integrações, Internacional, Risco e fraude, Onboarding, Dashboard, Ticket 2.0, Learning area, IA, Bluee, Engenharia, backoffice, legislação, API, INFRA, PCI, Gateway, Aplicativos, Segurança, Dashboard), NÃO adicione também o módulo macro correspondente.
+
+Módulos macro (NÃO usar junto de um sub-contexto):
+- Greenn ADM
+- Greenn Sales
+- Greenn Back
+- Greenn ERP
+- Greenn Club
+- Greenn Eventos
+- Greenn Messages
+- Greenn Envios
+- GDigital
+- xgrow
+- TI_Interna
+
+Exemplos do que FAZER:
+- "Venda com status reembolso pendente no produtor X" → ["Reembolso"] ✅ (NÃO ["Reembolso","Greenn ADM"])
+- "Botão de pagar não funciona no checkout do Payfast" → ["Checkout e pagamento"] ✅
+- "Cupom não aplica no checkout" → ["Checkout e pagamento", "Cupom"] ✅ (dois sub-contextos)
+- "Saque travado em processando" → ["Saque"] ✅ (NÃO ["Saque","Greenn ADM"])
+- "Comissão errada para afiliado multi-nível" → ["Greenn Sales"] ✅ (macro permitido SE não há sub-contexto melhor)
 
 Lista válida de contextos (use o label EXATO):
 ${Object.keys(CT_CONTEXTOS).map(k => `- ${k}`).join('\n')}
