@@ -12,29 +12,41 @@ async function callAI(userMessage) {
   const transientStatuses = new Set([429, 500, 502, 503, 504]);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+  // Erros do CALLER (auth/quota) que NÃO valem pular modelo nem retry.
+  const fatalStatuses = new Set([400, 401, 403]);
+
   let lastErr;
   for (let i = 0; i < models.length; i++) {
     const model = models[i];
+    let modelDone = false;
     // 2 tentativas por modelo (1 inicial + 1 retry) com backoff curto.
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 2 && !modelDone; attempt++) {
       try {
         const res = await _geminiCall(model, key, userMessage);
         if (res.ok) return _parseGeminiResponse(await res.json());
-        if (!transientStatuses.has(res.status)) {
+
+        // 400/401/403 = problema do CALLER — aborta tudo.
+        if (fatalStatuses.has(res.status)) {
           const err = await res.json().catch(() => ({}));
           throw new Error(err.error?.message || `Erro ${res.status}`);
         }
-        // transient → backoff
-        lastErr = new Error(`Modelo ${model} indisponível (${res.status})`);
-        await sleep(600 + attempt * 900);
+
+        const err = await res.json().catch(() => ({}));
+        lastErr = new Error(err.error?.message || `Modelo ${model} indisponível (${res.status})`);
+
+        // 404 (model not found) ou outros não-transient: não adianta retry no MESMO modelo, vai pro próximo.
+        if (!transientStatuses.has(res.status)) {
+          modelDone = true;
+        } else {
+          await sleep(600 + attempt * 900);
+        }
       } catch (e) {
+        // Erro fatal já lançado acima → propaga.
+        if (e.message && (e.message.includes('401') || e.message.includes('403') || e.message.includes('API key'))) throw e;
         lastErr = e;
-        // Erro de rede também tenta de novo
         if (attempt === 0) await sleep(500);
-        else break;
       }
     }
-    // próximo modelo
   }
   throw new Error((lastErr && lastErr.message) || 'IA indisponível no momento. Tente novamente em alguns segundos.');
 }

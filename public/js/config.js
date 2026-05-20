@@ -5,7 +5,8 @@
 // ────────────────────────────────────────────────────────
 const GEMINI_MODEL = 'gemini-2.5-flash';
 // Ordem de fallback se o primário retornar 429/503/overloaded.
-const GEMINI_FALLBACKS = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+// gemini-1.5-flash foi descontinuado no v1beta. Usar 2.x apenas.
+const GEMINI_FALLBACKS = ['gemini-2.0-flash', 'gemini-flash-latest'];
 
 const CT_PRIORITY_MAP = { 'Urgente': 1, 'Alta': 2, 'Normal': 3, 'Baixa': 4 };
 
